@@ -93,7 +93,6 @@ type ConsensusState interface {
 
 	// GetTimestamp returns the timestamp (in nanoseconds) of the consensus state
 	GetTimestamp() uint64
-
 	ValidateBasic() error
 }
 
