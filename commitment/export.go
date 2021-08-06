@@ -1,4 +1,4 @@
-package exported
+package commitment
 
 import ics23 "github.com/confio/ics23/go"
 
