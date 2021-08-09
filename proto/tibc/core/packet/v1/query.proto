@@ -46,14 +46,14 @@ service Query {
   // channel and sequences.
   rpc UnreceivedPackets(QueryUnreceivedPacketsRequest) returns (QueryUnreceivedPacketsResponse) {
     option (google.api.http).get = "/ibc/core/channel/v1beta1/channels/{channel_id}/ports/{port_id}/packet_commitments/"
-                                   "{packet_commitment_sequences}/unreceived_packets";
+        "{packet_commitment_sequences}/unreceived_packets";
   }
 
   // UnreceivedAcks returns all the unreceived IBC acknowledgements associated with a
   // channel and sequences.
   rpc UnreceivedAcks(QueryUnreceivedAcksRequest) returns (QueryUnreceivedAcksResponse) {
     option (google.api.http).get = "/ibc/core/channel/v1beta1/channels/{channel_id}/ports/{port_id}/packet_commitments/"
-                                   "{packet_ack_sequences}/unreceived_acks";
+        "{packet_ack_sequences}/unreceived_acks";
   }
 
   // NextSequenceReceive returns the next receive sequence for a given channel.

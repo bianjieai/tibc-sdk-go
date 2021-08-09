@@ -11,8 +11,8 @@ import "tibc/core/packet/v1/genesis.proto";
 message GenesisState {
   // ICS002 - Clients genesis state
   tibc.core.client.v1.GenesisState client_genesis = 1
-      [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"client_genesis\""];
+  [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"client_genesis\""];
   // ICS004 - Packet genesis state
   tibc.core.packet.v1.GenesisState packet_genesis = 3
-      [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"packet_genesis\""];
+  [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"packet_genesis\""];
 }

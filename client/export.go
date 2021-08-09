@@ -1,7 +1,7 @@
 package client
 
 import (
-	proto "github.com/gogo/protobuf/proto"
+	"github.com/gogo/protobuf/proto"
 
 	"github.com/bianjieai/tibc-sdk-go/commitment"
 	"github.com/cosmos/cosmos-sdk/codec"

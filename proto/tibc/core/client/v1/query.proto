@@ -28,8 +28,8 @@ service Query {
   rpc ConsensusState(QueryConsensusStateRequest)
       returns (QueryConsensusStateResponse) {
     option (google.api.http).get = "/ibc/core/client/v1beta1/consensus_states/"
-                                   "{chain_name}/revision/{revision_number}/"
-                                   "height/{revision_height}";
+        "{chain_name}/revision/{revision_number}/"
+        "height/{revision_height}";
   }
 
   // ConsensusStates queries all the consensus state associated with a given
@@ -64,7 +64,7 @@ message QueryClientStateResponse {
   // merkle proof of existence
   bytes proof = 2;
   // height at which the proof was retrieved
-  tibc.core.client.v1.Height proof_height = 3 [ (gogoproto.nullable) = false ];
+  tibc.core.client.v1.Height proof_height = 3 [(gogoproto.nullable) = false];
 }
 
 // QueryClientStatesRequest is the request type for the Query/ClientStates RPC
@@ -109,7 +109,7 @@ message QueryConsensusStateResponse {
   // merkle proof of existence
   bytes proof = 2;
   // height at which the proof was retrieved
-  tibc.core.client.v1.Height proof_height = 3 [ (gogoproto.nullable) = false ];
+  tibc.core.client.v1.Height proof_height = 3 [(gogoproto.nullable) = false];
 }
 
 // QueryConsensusStatesRequest is the request type for the Query/ConsensusStates
@@ -126,7 +126,7 @@ message QueryConsensusStatesRequest {
 message QueryConsensusStatesResponse {
   // consensus states associated with the identifier
   repeated ConsensusStateWithHeight consensus_states = 1
-      [ (gogoproto.nullable) = false ];
+  [(gogoproto.nullable) = false];
   // pagination response
   cosmos.base.query.v1beta1.PageResponse pagination = 2;
 }

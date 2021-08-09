@@ -2,7 +2,9 @@ package client
 
 import (
 	"github.com/irisnet/core-sdk-go/common/codec"
+	"github.com/irisnet/core-sdk-go/common/codec/types"
 	cryptocodec "github.com/irisnet/core-sdk-go/common/crypto/codec"
+	sdk "github.com/irisnet/core-sdk-go/types"
 )
 
 var (
@@ -15,10 +17,9 @@ func init() {
 	amino.Seal()
 }
 
-//
-//func RegisterInterfaces(registry types.InterfaceRegistry) {
-//	registry.RegisterImplementations(
-//		(*sdk.Msg)(nil),
-//		& {},
-//	)
-//}
+func RegisterInterfaces(registry types.InterfaceRegistry) {
+	registry.RegisterImplementations(
+		(*sdk.Msg)(nil),
+		&MsgUpdateClient{},
+	)
+}

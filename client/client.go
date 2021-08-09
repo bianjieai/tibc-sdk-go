@@ -3,45 +3,81 @@ package client
 import (
 	"context"
 
+	"github.com/cosmos/cosmos-sdk/types/query"
 	grpc1 "github.com/gogo/protobuf/grpc"
 	"google.golang.org/grpc"
 )
 
 type Client struct {
 	QueryClient
-
+	MsgClient
+	pageReq   *query.PageRequest
 	chainName string
 	delay     uint64
 }
 
-func NewQueryClientForClient(cc grpc1.ClientConn, config ...string) (*Client, error) {
-	a := new(Client)
-	a.QueryClient = NewQueryClient(cc)
-	// chainName and delay
-	return a, nil
+type Config struct {
+	chainName string
+	delay     uint64
 }
 
-// GetClientState getclientstate
-func (c *Client) GetClientState(ctx context.Context, in *QueryClientStateRequest, opts ...grpc.CallOption) (*QueryClientStateResponse, error) {
-	return c.QueryClient.ClientState(ctx, in, opts...)
+func NewQueryClientForClient(cc grpc1.ClientConn, config Config) (*Client, error) {
+	return &Client{
+		QueryClient: NewQueryClient(cc),
+		MsgClient:   NewMsgClient(cc),
+		chainName:   config.chainName,
+		delay:       config.delay,
+	}, nil
 }
 
-// GetClientStates getclientstates
-func (c *Client) GetClientStates(ctx context.Context, in *QueryClientStatesRequest, opts ...grpc.CallOption) (*QueryClientStatesResponse, error) {
-	return c.QueryClient.ClientStates(ctx, in, opts...)
+// GetClientState queries an IBC light client.
+func (c *Client) GetClientState(ctx context.Context) (*QueryClientStateResponse, error) {
+	in := &QueryClientStateRequest{
+		ChainName: c.chainName,
+	}
+	return c.QueryClient.ClientState(ctx, in)
 }
 
-// GetConsensusState getconsensusstate
-func (c *Client) GetConsensusState(ctx context.Context, in *QueryConsensusStateRequest, opts ...grpc.CallOption) (*QueryConsensusStateResponse, error) {
-	return c.QueryClient.ConsensusState(ctx, in, opts...)
+// GetClientStates queries all the IBC light clients of a chain.
+func (c *Client) GetClientStates(ctx context.Context) (*QueryClientStatesResponse, error) {
+	req := &QueryClientStatesRequest{
+		Pagination: c.pageReq,
+	}
+	return c.QueryClient.ClientStates(ctx, req)
 }
 
-// GetConsensusStates getconsensusstates
-func (c *Client) GetConsensusStates(ctx context.Context, in *QueryConsensusStatesRequest, opts ...grpc.CallOption) (*QueryConsensusStatesResponse, error) {
-	return c.QueryClient.ConsensusStates(ctx, in, opts...)
+// GetConsensusState queries a consensus state associated with a client state at
+// a given height.
+func (c *Client) GetConsensusState(ctx context.Context, pageReq *query.PageRequest) (*QueryConsensusStateResponse, error) {
+	req := &QueryConsensusStateRequest{
+		ChainName: c.chainName,
+	}
+	return c.QueryClient.ConsensusState(ctx, req)
 }
 
-// GetRelayers getrelayers
-func (c *Client) GetRelayers(ctx context.Context, in *QueryRelayersRequest, opts ...grpc.CallOption) (*QueryRelayersResponse, error) {
-	return c.QueryClient.Relayers(ctx, in, opts...)
+// ConsensusStates queries all the consensus state associated with a given
+// client.
+func (c *Client) ConsensusStates(ctx context.Context) (*QueryConsensusStatesResponse, error) {
+	req := &QueryConsensusStatesRequest{
+		ChainName:  c.chainName,
+		Pagination: c.pageReq,
+	}
+	return c.QueryClient.ConsensusStates(ctx, req)
+}
+
+// Relayers queries all the relayers associated with a given
+// client.
+func (c *Client) Relayers(ctx context.Context) (*QueryRelayersResponse, error) {
+	req := &QueryRelayersRequest{
+		ChainName: c.chainName,
+	}
+	return c.QueryClient.Relayers(ctx, req)
+}
+
+func (c *Client) UpdateClient(ctx context.Context, in *MsgUpdateClient, opts ...grpc.CallOption) (*MsgUpdateClientResponse, error) {
+	content, err := NewCreateClientProposal(title, description, chainName, clientState, consensusState)
+	if err != nil {
+		return err
+	}
+	return c.MsgClient.UpdateClient(ctx, in, opts...)
 }
