@@ -2,99 +2,150 @@ package client
 
 import (
 	"context"
-
-	"github.com/cosmos/cosmos-sdk/client/flags"
-	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	"github.com/cosmos/cosmos-sdk/types/query"
-	grpc1 "github.com/gogo/protobuf/grpc"
-	"github.com/spf13/pflag"
+	"github.com/irisnet/core-sdk-go/common/codec/types"
+	sdk "github.com/irisnet/core-sdk-go/types"
 )
 
 type Client struct {
-	QueryClient
-	MsgClient
-	*query.PageRequest
-
-	chainName string
-	delay     uint64
+	sdk.BaseClient
+	sdk.GRPCClient
 }
 
-type Config struct {
-	chainName string
-	delay     uint64
+func NewClient(bc sdk.BaseClient) Client {
+	return Client{
+		BaseClient: bc,
+	}
 }
 
-func NewQueryClientForClient(cc grpc1.ClientConn, config Config) (*Client, error) {
-	var flagSet *pflag.FlagSet
-	pageKey, _ := flagSet.GetString(flags.FlagPageKey)
-	offset, _ := flagSet.GetUint64(flags.FlagOffset)
-	limit, _ := flagSet.GetUint64(flags.FlagLimit)
-	countTotal, _ := flagSet.GetBool(flags.FlagCountTotal)
-	page, _ := flagSet.GetUint64(flags.FlagPage)
-
-	if page > 1 && offset > 0 {
-		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "page and offset cannot be used together")
-	}
-
-	if page > 1 {
-		offset = (page - 1) * limit
-	}
-
-	req := &query.PageRequest{
-		Key:        []byte(pageKey),
-		Offset:     offset,
-		Limit:      limit,
-		CountTotal: countTotal,
-	}
-	return &Client{
-		QueryClient: NewQueryClient(cc),
-		MsgClient:   NewMsgClient(cc),
-		PageRequest: req,
-		chainName:   config.chainName,
-		delay:       config.delay,
-	}, nil
+func (c Client) RegisterInterfaceTypes(registry types.InterfaceRegistry) {
+	RegisterInterfaces(registry)
 }
 
 // GetClientState queries an IBC light client.
-func (c *Client) GetClientState(ctx context.Context) (*QueryClientStateResponse, error) {
+func (c Client) GetClientState(chainName string) (*QueryClientStateResponse, error) {
+
 	in := &QueryClientStateRequest{
-		ChainName: c.chainName,
+		ChainName: chainName,
 	}
-	return c.QueryClient.ClientState(ctx, in)
+
+	conn, err := c.BaseClient.GenConn()
+	if err != nil {
+		return nil, sdk.Wrap(err)
+	}
+
+	res, err := NewQueryClient(conn).ClientState(
+		context.Background(),
+		in,
+	)
+	if err != nil {
+		return &QueryClientStateResponse{}, sdk.Wrap(err)
+	}
+
+	// todo ? change res to value?
+	return res, nil
+
 }
 
 // GetClientStates queries all the IBC light clients of a chain.
-func (c *Client) GetClientStates(ctx context.Context) (*QueryClientStatesResponse, error) {
-	req := &QueryClientStatesRequest{
-		Pagination: c.PageRequest,
+func (c Client) GetClientStates() (*QueryClientStatesResponse, error) {
+	in := &QueryClientStatesRequest{}
+	conn, err := c.BaseClient.GenConn()
+	if err != nil {
+		return nil, sdk.Wrap(err)
 	}
-	return c.QueryClient.ClientStates(ctx, req)
+	res, err := NewQueryClient(conn).ClientStates(
+		context.Background(),
+		in,
+	)
+	// todo ? change res to value?
+
+	return res, err
 }
 
 // GetConsensusState queries a consensus state associated with a client state at
 // a given height.
-func (c *Client) GetConsensusState(ctx context.Context, pageReq *query.PageRequest) (*QueryConsensusStateResponse, error) {
+func (c Client) GetConsensusState(chainName string, height uint64) (*QueryConsensusStateResponse, error) {
 	req := &QueryConsensusStateRequest{
-		ChainName: c.chainName,
+		ChainName:      chainName,
+		RevisionHeight: height,
 	}
-	return c.QueryClient.ConsensusState(ctx, req)
+	conn, err := c.BaseClient.GenConn()
+	if err != nil {
+		return nil, sdk.Wrap(err)
+	}
+
+	res, err := NewQueryClient(conn).ConsensusState(
+		context.Background(),
+		req,
+	)
+	if err != nil {
+		return nil, sdk.Wrap(err)
+	}
+	// todo ? change res to value?
+
+	return res, nil
 }
 
 // ConsensusStates queries all the consensus state associated with a given
 // client.
-func (c *Client) ConsensusStates(ctx context.Context) (*QueryConsensusStatesResponse, error) {
+func (c Client) ConsensusStates(chainName string) (*QueryConsensusStatesResponse, error) {
 	req := &QueryConsensusStatesRequest{
-		ChainName:  c.chainName,
-		Pagination: c.PageRequest,
+		ChainName: chainName,
 	}
-	return c.QueryClient.ConsensusStates(ctx, req)
+	conn, err := c.BaseClient.GenConn()
+	if err != nil {
+		return nil, sdk.Wrap(err)
+	}
+
+	res, err := NewQueryClient(conn).ConsensusStates(
+		context.Background(),
+		req,
+	)
+	if err != nil {
+		return nil, sdk.Wrap(err)
+	}
+	// todo ? change res to value?
+
+	return res, nil
 }
 
 // Relayers queries all the relayers associated with a given
 // client.
-func (c *Client) Relayers(ctx context.Context) (*QueryRelayersResponse, error) {
+func (c Client) Relayers(chainName string) (*QueryRelayersResponse, error) {
 	req := &QueryRelayersRequest{
-		ChainName: c.chainName,
+		ChainName: chainName,
 	}
-	return c.QueryClient.Relayers(ctx, req)
+	conn, err := c.BaseClient.GenConn()
+	if err != nil {
+		return nil, sdk.Wrap(err)
+	}
+
+	res, err := NewQueryClient(conn).Relayers(
+		context.Background(),
+		req,
+	)
+	if err != nil {
+		return nil, sdk.Wrap(err)
+	}
+	// todo ? change res to value?
+
+	return res, nil
+}
+func (c Client) UpdateClient(msgUpdateClient MsgUpdateClient) (*MsgUpdateClientResponse, error) {
+	req := &msgUpdateClient
+	conn, err := c.BaseClient.GenConn()
+	if err != nil {
+		return nil, sdk.Wrap(err)
+	}
+	res, err := NewMsgClient(conn).UpdateClient(
+		context.Background(),
+		req,
+	)
+	if err != nil {
+		return nil, sdk.Wrap(err)
+	}
+
+	// todo ? change res to value?
+	return res, nil
+
 }

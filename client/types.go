@@ -3,6 +3,13 @@ package client
 import (
 	"fmt"
 	"sort"
+
+	"github.com/irisnet/core-sdk-go/client"
+	"google.golang.org/grpc"
+)
+
+const (
+	ModuleName = "client"
 )
 
 type IdentifiedClientStates []IdentifiedClientState
@@ -26,4 +33,13 @@ func (ics IdentifiedClientStates) Sort() IdentifiedClientStates {
 // String returns a string representation of Height
 func (h Height) String() string {
 	return fmt.Sprintf("%d-%d", h.RevisionNumber, h.RevisionHeight)
+}
+
+func (c *Client) NewGrpcConn(address string) {
+	c.GRPCClient = client.NewGRPCClient(address)
+}
+
+func (c *Client) GenConn() (*grpc.ClientConn, error) {
+	conn, err := c.GRPCClient.GenConn()
+	return conn, err
 }
