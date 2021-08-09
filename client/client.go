@@ -3,15 +3,18 @@ package client
 import (
 	"context"
 
+	"github.com/cosmos/cosmos-sdk/client/flags"
+	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/cosmos/cosmos-sdk/types/query"
 	grpc1 "github.com/gogo/protobuf/grpc"
-	"google.golang.org/grpc"
+	"github.com/spf13/pflag"
 )
 
 type Client struct {
 	QueryClient
 	MsgClient
-	pageReq   *query.PageRequest
+	*query.PageRequest
+
 	chainName string
 	delay     uint64
 }
@@ -22,9 +25,31 @@ type Config struct {
 }
 
 func NewQueryClientForClient(cc grpc1.ClientConn, config Config) (*Client, error) {
+	var flagSet *pflag.FlagSet
+	pageKey, _ := flagSet.GetString(flags.FlagPageKey)
+	offset, _ := flagSet.GetUint64(flags.FlagOffset)
+	limit, _ := flagSet.GetUint64(flags.FlagLimit)
+	countTotal, _ := flagSet.GetBool(flags.FlagCountTotal)
+	page, _ := flagSet.GetUint64(flags.FlagPage)
+
+	if page > 1 && offset > 0 {
+		return nil, sdkerrors.Wrap(sdkerrors.ErrInvalidRequest, "page and offset cannot be used together")
+	}
+
+	if page > 1 {
+		offset = (page - 1) * limit
+	}
+
+	req := &query.PageRequest{
+		Key:        []byte(pageKey),
+		Offset:     offset,
+		Limit:      limit,
+		CountTotal: countTotal,
+	}
 	return &Client{
 		QueryClient: NewQueryClient(cc),
 		MsgClient:   NewMsgClient(cc),
+		PageRequest: req,
 		chainName:   config.chainName,
 		delay:       config.delay,
 	}, nil
@@ -41,7 +66,7 @@ func (c *Client) GetClientState(ctx context.Context) (*QueryClientStateResponse,
 // GetClientStates queries all the IBC light clients of a chain.
 func (c *Client) GetClientStates(ctx context.Context) (*QueryClientStatesResponse, error) {
 	req := &QueryClientStatesRequest{
-		Pagination: c.pageReq,
+		Pagination: c.PageRequest,
 	}
 	return c.QueryClient.ClientStates(ctx, req)
 }
@@ -60,7 +85,7 @@ func (c *Client) GetConsensusState(ctx context.Context, pageReq *query.PageReque
 func (c *Client) ConsensusStates(ctx context.Context) (*QueryConsensusStatesResponse, error) {
 	req := &QueryConsensusStatesRequest{
 		ChainName:  c.chainName,
-		Pagination: c.pageReq,
+		Pagination: c.PageRequest,
 	}
 	return c.QueryClient.ConsensusStates(ctx, req)
 }
@@ -72,12 +97,4 @@ func (c *Client) Relayers(ctx context.Context) (*QueryRelayersResponse, error) {
 		ChainName: c.chainName,
 	}
 	return c.QueryClient.Relayers(ctx, req)
-}
-
-func (c *Client) UpdateClient(ctx context.Context, in *MsgUpdateClient, opts ...grpc.CallOption) (*MsgUpdateClientResponse, error) {
-	content, err := NewCreateClientProposal(title, description, chainName, clientState, consensusState)
-	if err != nil {
-		return err
-	}
-	return c.MsgClient.UpdateClient(ctx, in, opts...)
 }
