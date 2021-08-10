@@ -5,6 +5,7 @@ import (
 
 	"github.com/bianjieai/tibc-sdk-go/client"
 	"github.com/irisnet/core-sdk-go/common/codec"
+	"github.com/irisnet/core-sdk-go/common/codec/types"
 	sdk "github.com/irisnet/core-sdk-go/types"
 )
 
@@ -16,6 +17,9 @@ func NewClient(bc sdk.BaseClient, cdc codec.Marshaler) (*tendermintLightClient, 
 	return &tendermintLightClient{
 		cli: client.NewClient(bc, cdc),
 	}, nil
+}
+func (q *tendermintLightClient) RegisterInterfaceTypes(registry types.InterfaceRegistry) {
+	q.cli.RegisterInterfaceTypes(registry)
 }
 
 func (q *tendermintLightClient) QueryClientState(chainName string) (ClientState, error) {
