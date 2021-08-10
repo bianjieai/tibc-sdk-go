@@ -35,11 +35,11 @@ func (h Height) String() string {
 	return fmt.Sprintf("%d-%d", h.RevisionNumber, h.RevisionHeight)
 }
 
-func (c *Client) NewGrpcConn(address string) {
+func (c *queryStateClient) NewGrpcConn(address string) {
 	c.GRPCClient = client.NewGRPCClient(address)
 }
 
-func (c *Client) GenConn() (*grpc.ClientConn, error) {
+func (c *queryStateClient) GenConn() (*grpc.ClientConn, error) {
 	conn, err := c.GRPCClient.GenConn()
 	return conn, err
 }

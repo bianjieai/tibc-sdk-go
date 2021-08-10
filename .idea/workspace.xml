@@ -4,12 +4,13 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="8994742c-e80b-4026-8075-4efa91ee0f19" name="Changes" comment="init client">
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="8994742c-e80b-4026-8075-4efa91ee0f19" name="Changes" comment="init tendermint">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/client/client.go" beforeDir="false" afterPath="$PROJECT_DIR$/client/client.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/export.go" beforeDir="false" afterPath="$PROJECT_DIR$/client/export.go" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/client/query.pb.go" beforeDir="false" afterPath="$PROJECT_DIR$/client/query.pb.go" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/client/types.go" beforeDir="false" afterPath="$PROJECT_DIR$/client/types.go" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.mod" beforeDir="false" afterPath="$PROJECT_DIR$/go.mod" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/go.sum" beforeDir="false" afterPath="$PROJECT_DIR$/go.sum" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/light-clients/tendermint/query.go" beforeDir="false" afterPath="$PROJECT_DIR$/light-clients/tendermint/query.go" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -32,7 +33,7 @@
     <option name="indexEntireGoPath" value="false" />
   </component>
   <component name="ProjectId" id="1wFXNcw0gszF918Ir3xOeiFSNCH" />
-  <component name="ProjectLevelVcsManager">
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <ConfirmationsSetting value="2" id="Add" />
   </component>
   <component name="ProjectViewState">
@@ -49,12 +50,15 @@
     <property name="go.import.settings.migrated" value="true" />
     <property name="go.modules.go.list.on.any.changes.was.set" value="true" />
     <property name="go.sdk.automatically.set" value="true" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../tibc-relayer-go" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="node.js.detected.package.eslint" value="true" />
+    <property name="node.js.selected.package.eslint" value="(autodetect)" />
+    <property name="settings.editor.selected.configurable" value="watcher.settings" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="$PROJECT_DIR$/client" />
       <recent name="$PROJECT_DIR$/proto/tibc/lightclients/tendermint/v1" />
+      <recent name="$PROJECT_DIR$/client" />
       <recent name="$PROJECT_DIR$/commitment" />
       <recent name="$PROJECT_DIR$/packet" />
       <recent name="$PROJECT_DIR$" />
@@ -128,7 +132,8 @@
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
     <MESSAGE value="init client commitment packet" />
     <MESSAGE value="init client" />
-    <option name="LAST_COMMIT_MESSAGE" value="init client" />
+    <MESSAGE value="init tendermint" />
+    <option name="LAST_COMMIT_MESSAGE" value="init tendermint" />
   </component>
   <component name="VgoProject">
     <integration-enabled>true</integration-enabled>

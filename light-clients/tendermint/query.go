@@ -8,7 +8,7 @@ import (
 	sdk "github.com/irisnet/core-sdk-go/types"
 )
 
-type Client struct {
+type tendermintLightClient struct {
 	cli client.Client
 }
 
@@ -18,7 +18,7 @@ func NewClient(bc sdk.BaseClient, cdc codec.Marshaler) (*Client, error) {
 	}, nil
 }
 
-func (q *Client) QueryClientState(chainName string) (ClientState, error) {
+func (q *tendermintLightClient) QueryClientState(chainName string) (ClientState, error) {
 	responseClientState, err := q.cli.GetClientState(chainName)
 	if err != nil {
 		return ClientState{}, sdk.Wrap(err)
@@ -31,7 +31,7 @@ func (q *Client) QueryClientState(chainName string) (ClientState, error) {
 	return res, nil
 }
 
-func (q *Client) QueryConsensusState(chainName string, height uint64) (ConsensusState, error) {
+func (q *tendermintLightClient) QueryConsensusState(chainName string, height uint64) (ConsensusState, error) {
 	responseConsensusState, err := q.cli.GetConsensusState(chainName, height)
 	if err != nil {
 		return ConsensusState{}, sdk.Wrap(err)
