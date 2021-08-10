@@ -8,24 +8,24 @@ import (
 	sdk "github.com/irisnet/core-sdk-go/types"
 )
 
-type queryStateClient struct {
+type Client struct {
 	sdk.BaseClient
 	codec.Marshaler
 }
 
-func NewQueryStateClient(bc sdk.BaseClient, cbc codec.Marshaler) queryStateClient {
-	return queryStateClient{
+func NewClient(bc sdk.BaseClient, cbc codec.Marshaler) Client {
+	return Client{
 		BaseClient: bc,
 		Marshaler:  cbc,
 	}
 }
 
-func (c queryStateClient) RegisterInterfaceTypes(registry types.InterfaceRegistry) {
+func (c Client) RegisterInterfaceTypes(registry types.InterfaceRegistry) {
 	RegisterInterfaces(registry)
 }
 
 // GetClientState queries an IBC light client.
-func (c queryStateClient) GetClientState(chainName string) (*QueryClientStateResponse, error) {
+func (c Client) GetClientState(chainName string) (*QueryClientStateResponse, error) {
 
 	in := &QueryClientStateRequest{
 		ChainName: chainName,
@@ -50,7 +50,7 @@ func (c queryStateClient) GetClientState(chainName string) (*QueryClientStateRes
 }
 
 // GetClientStates queries all the IBC light clients of a chain.
-func (c queryStateClient) GetClientStates() (*QueryClientStatesResponse, error) {
+func (c Client) GetClientStates() (*QueryClientStatesResponse, error) {
 	in := &QueryClientStatesRequest{}
 	conn, err := c.GenConn()
 	if err != nil {
@@ -67,7 +67,7 @@ func (c queryStateClient) GetClientStates() (*QueryClientStatesResponse, error) 
 
 // GetConsensusState queries a consensus state associated with a client state at
 // a given height.
-func (c queryStateClient) GetConsensusState(chainName string, height uint64) (*QueryConsensusStateResponse, error) {
+func (c Client) GetConsensusState(chainName string, height uint64) (*QueryConsensusStateResponse, error) {
 	req := &QueryConsensusStateRequest{
 		ChainName:      chainName,
 		RevisionHeight: height,
@@ -91,7 +91,7 @@ func (c queryStateClient) GetConsensusState(chainName string, height uint64) (*Q
 
 // ConsensusStates queries all the consensus state associated with a given
 // client.
-func (c queryStateClient) ConsensusStates(chainName string) (*QueryConsensusStatesResponse, error) {
+func (c Client) ConsensusStates(chainName string) (*QueryConsensusStatesResponse, error) {
 	req := &QueryConsensusStatesRequest{
 		ChainName: chainName,
 	}
@@ -114,7 +114,7 @@ func (c queryStateClient) ConsensusStates(chainName string) (*QueryConsensusStat
 
 // Relayers queries all the relayers associated with a given
 // client.
-func (c queryStateClient) Relayers(chainName string) (*QueryRelayersResponse, error) {
+func (c Client) Relayers(chainName string) (*QueryRelayersResponse, error) {
 	req := &QueryRelayersRequest{
 		ChainName: chainName,
 	}
@@ -134,7 +134,7 @@ func (c queryStateClient) Relayers(chainName string) (*QueryRelayersResponse, er
 
 	return res, nil
 }
-func (c queryStateClient) UpdateClient(msgUpdateClient UpdateClientRequest) (*MsgUpdateClientResponse, error) {
+func (c Client) UpdateClient(msgUpdateClient UpdateClientRequest) (*MsgUpdateClientResponse, error) {
 	req := &MsgUpdateClient{}
 	conn, err := c.GenConn()
 	if err != nil {

@@ -12,8 +12,8 @@ type tendermintLightClient struct {
 	cli client.Client
 }
 
-func NewClient(bc sdk.BaseClient, cdc codec.Marshaler) (*Client, error) {
-	return &Client{
+func NewClient(bc sdk.BaseClient, cdc codec.Marshaler) (*tendermintLightClient, error) {
+	return &tendermintLightClient{
 		cli: client.NewClient(bc, cdc),
 	}, nil
 }
