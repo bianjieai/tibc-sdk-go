@@ -14,6 +14,8 @@ type ChainClient interface {
 	GetConsensusState(chainName string, height uint64) (tibctypes.ConsensusState, error)
 	GetConsensusStates(chainName string) ([]tibctypes.ConsensusState, error)
 	Relayers(chainName string) ([]string, error)
+	UpdateClient( tibctypes.UpdateClientRequest,  sdk.BaseTx)(sdk.ResultTx, sdk.Error)
 }
+
 
 

@@ -1,8 +1,13 @@
 package types
 
-import 	"github.com/gogo/protobuf/proto"
+import (
+	"github.com/gogo/protobuf/proto"
+	"github.com/irisnet/core-sdk-go/common/codec/types"
+)
 
-// TendermintClientState defines the required common functions for light clients.
+
+
+// ClientState defines the required common functions for light clients.
 type ClientState interface {
 	proto.Message
 
@@ -15,7 +20,7 @@ type ClientState interface {
 
 }
 
-// TendermintConsensusState is the state of the consensus process
+// ConsensusState is the state of the consensus process
 type ConsensusState interface {
 	proto.Message
 
@@ -37,4 +42,13 @@ type Header interface {
 	//ClientType() string
 	//GetHeight() Height
 	//ValidateBasic() error
+}
+
+
+type UpdateClientRequest struct {
+	ChainName string `json:"chain_name"`
+	// header to update the light client
+	Header *types.Any `json:"header"`
+	// signer address
+	Signer string `json:"signer"`
 }

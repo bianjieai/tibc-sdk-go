@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	sdk "github.com/irisnet/core-sdk-go/types"
 	"sort"
 )
 
@@ -34,3 +35,24 @@ func (h Height) String() string {
 }
 
 
+func (m *MsgUpdateClient) Route() string {
+	return "tibc"
+}
+
+func (m *MsgUpdateClient) Type() string {
+	return "update_client"
+}
+
+func (m *MsgUpdateClient) ValidateBasic() error {
+	return nil
+}
+
+func (m *MsgUpdateClient) GetSignBytes() []byte {
+	panic("IBC messages do not support amino")}
+
+func (m *MsgUpdateClient) GetSigners() []sdk.AccAddress {
+	accAddr, err := sdk.AccAddressFromBech32(m.Signer)
+	if err != nil {
+		panic(err)
+	}
+	return []sdk.AccAddress{accAddr}}

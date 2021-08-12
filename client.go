@@ -16,8 +16,8 @@ type Client struct {
 	commoncodec.Marshaler
 }
 
-func NewClient(bc types.BaseClient, cdc commoncodec.Marshaler) Client {
-	return Client{
+func NewClient(bc types.BaseClient, cdc commoncodec.Marshaler) client.ChainClient {
+	return &Client{
 		BaseClient: bc,
 		Marshaler:  cdc,
 	}
@@ -25,6 +25,10 @@ func NewClient(bc types.BaseClient, cdc commoncodec.Marshaler) Client {
 
 func (c Client) RegisterInterfaceTypes(registry cryptotypes.InterfaceRegistry) {
 	tendermint.RegisterInterfaces(registry)
+}
+
+func (c Client) Name() string {
+	return "tibc"
 }
 
 // GetClientState queries an IBC light client.
@@ -154,4 +158,20 @@ func (c Client) Relayers(chainName string) ([]string, error) {
 	}
 
 	return nil, nil
+}
+
+func (c Client) UpdateClient(req tibctypes.UpdateClientRequest, baseTx types.BaseTx) (types.ResultTx, types.Error) {
+	owner, err := c.QueryAddress(baseTx.From, baseTx.Password)
+	if err != nil {
+		return types.ResultTx{}, types.Wrap(err)
+	}
+
+	msg := &client.MsgUpdateClient{
+		ChainName: req.ChainName,
+		// header to update the light client
+		Header: req.Header,
+		// signer address
+		Signer: owner.String(),
+	}
+	return c.BuildAndSend([]types.Msg{msg}, baseTx)
 }
