@@ -1,7 +1,9 @@
-package client
+package integration
 
 import (
+	tibcclient "github.com/bianjieai/tibc-sdk-go"
 	"github.com/bianjieai/tibc-sdk-go/tendermint"
+	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
 	sdk "github.com/irisnet/core-sdk-go"
 	"github.com/irisnet/core-sdk-go/bank"
 	"github.com/irisnet/core-sdk-go/client"
@@ -24,13 +26,13 @@ type clientforlightclient struct {
 	TendermintClient tendermint.ChainClient
 }
 
-func NewClient(cfg types.ClientConfig) clientforlightclient {
+func newClient(cfg types.ClientConfig) clientforlightclient {
 	encodingConfig := makeEncodingConfig()
 
 	// create a instance of baseClient
 	baseClient := client.NewBaseClient(cfg, encodingConfig, nil)
 	bankClient := bank.NewClient(baseClient, encodingConfig.Marshaler)
-	tendermintClient := tendermint.NewClient(baseClient, encodingConfig.Marshaler)
+	tendermintClient := tibcclient.NewClient(baseClient, encodingConfig.Marshaler)
 	keysClient := keys.NewKeysClient(cfg, baseClient)
 
 	client := &clientforlightclient{
@@ -43,13 +45,14 @@ func NewClient(cfg types.ClientConfig) clientforlightclient {
 		Key:              keysClient,
 	}
 
-	client.RegisterModule(
+	client.registerModule(
 		bankClient,
 		tendermintClient,
 	)
+
 	return *client
 }
-func (client clientforlightclient) RegisterModule(ms ...types.Module) {
+func (client clientforlightclient) registerModule(ms ...types.Module) {
 	for _, m := range ms {
 		m.RegisterInterfaceTypes(client.encodingConfig.InterfaceRegistry)
 	}
@@ -69,5 +72,6 @@ func makeEncodingConfig() types.EncodingConfig {
 	}
 	sdk.RegisterLegacyAminoCodec(encodingConfig.Amino)
 	sdk.RegisterInterfaces(encodingConfig.InterfaceRegistry)
+	tibctypes.RegisterInterfaces(encodingConfig.InterfaceRegistry)
 	return encodingConfig
 }

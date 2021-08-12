@@ -8,16 +8,7 @@ require (
 	github.com/golang/protobuf v1.5.2
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/irisnet/core-sdk-go v0.0.0-20210729072452-06544f6270f3
-	github.com/irisnet/irismod-sdk-go/coinswap v0.0.0-20210810032454-3ae775c15f1e
 	github.com/irisnet/irismod-sdk-go/gov v0.0.0-20210810032454-3ae775c15f1e
-	github.com/irisnet/irismod-sdk-go/htlc v0.0.0-20210810032454-3ae775c15f1e
-	github.com/irisnet/irismod-sdk-go/nft v0.0.0-20210810032454-3ae775c15f1e
-	github.com/irisnet/irismod-sdk-go/oracle v0.0.0-20210810032454-3ae775c15f1e
-	github.com/irisnet/irismod-sdk-go/random v0.0.0-20210810032454-3ae775c15f1e
-	github.com/irisnet/irismod-sdk-go/record v0.0.0-20210810032454-3ae775c15f1e
-	github.com/irisnet/irismod-sdk-go/service v0.0.0-20210810032454-3ae775c15f1e
-	github.com/irisnet/irismod-sdk-go/staking v0.0.0-20210810032454-3ae775c15f1e
-	github.com/irisnet/irismod-sdk-go/token v0.0.0-20210810032454-3ae775c15f1e
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/tendermint/tendermint v0.34.11
 	google.golang.org/genproto v0.0.0-20210805201207-89edb61ffb67

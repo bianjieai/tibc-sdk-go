@@ -1,12 +1,14 @@
-package client
+package integration
 
 import (
 	"fmt"
+	"testing"
+
 	sdk "github.com/irisnet/core-sdk-go"
 	"github.com/irisnet/core-sdk-go/common/crypto"
 	"github.com/irisnet/core-sdk-go/types"
 	"github.com/irisnet/core-sdk-go/types/store"
-	"testing"
+
 )
 
 const (
@@ -83,7 +85,7 @@ func Test_ClientCreat(t *testing.T) {
 		panic(err)
 	}
 
-	client := NewClient(cfg)
+	client := newClient(cfg)
 
 	if err != nil {
 		panic(err)
@@ -99,7 +101,7 @@ func Test_ClientCreat(t *testing.T) {
 	//bankSend(addr)
 	//fmt.Println(client.sdkClient.GenConn())
 	//fmt.Println(client.tendermintClient.Getconnn())
-	getClientState(client)
+	getConsensusState(client)
 	//fmt.Println(a)
 }
 
@@ -109,9 +111,42 @@ func getClientState(client clientforlightclient) {
 		panic(err)
 	}
 	fmt.Println(clientState1.String())
-
+}
+func getconesState(client clientforlightclient) {
+	clientState1, err := client.TendermintClient.GetClientStates()
+	if err != nil {
+		panic(err)
+	}
+	for _,value := range clientState1 {
+		if value == nil {
+			break
+		}
+		fmt.Println(value.String())
+	}
 }
 
+func getConsensusState(client clientforlightclient) {
+	consensusState1, err := client.TendermintClient.GetConsensusState("testCreateClient",8)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println(consensusState1.String())
+
+}
+func getConsensusStates(client clientforlightclient) {
+	consensusState1, err := client.TendermintClient.GetConsensusStates("testCreateClient")
+	if err != nil {
+		panic(err)
+	}
+	for _,value := range consensusState1 {
+		if value == nil {
+			break
+		}
+		fmt.Println(value.String())
+	}
+
+}
 func bankSend(client sdk.Client) {
 	addr, err := client.Key.Recover("test", "12345678", "strategy project text close add advance hint gaze rent future shoe winner dust reform scrub diagram trash ring critic vault edge potato pyramid fee")
 	//a, err := client.Key.Import("v1", "12345678", "-----BEGIN TENDERMINT PRIVATE KEY-----\nkdf: bcrypt\nsalt: E4EEAD39E485366E68E70812E16081D1\ntype: sm2\n\nXieOvCObvTx0I+7WIYlUeYIgrZvIf4aZFUaDCrWSPCIPmPHbo5fLSdax2vuCQfXl\nMEA7MIdFgxzKss4M/cmnwZOPoOjz/jZKPaE3q8g=\n=H9E3\n-----END TENDERMINT PRIVATE KEY-----")

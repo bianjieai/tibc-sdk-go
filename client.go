@@ -1,41 +1,41 @@
-package tibc_sdk_go
+package client
 
 import (
 	"context"
-	"github.com/bianjieai/tibc-sdk-go/tendermint"
 
+	"github.com/bianjieai/tibc-sdk-go/tendermint"
 	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
 	commoncodec "github.com/irisnet/core-sdk-go/common/codec"
 	cryptotypes "github.com/irisnet/core-sdk-go/common/codec/types"
 	"github.com/irisnet/core-sdk-go/types"
 )
 
-type tendermintClient struct {
+type Client struct {
 	types.BaseClient
 	commoncodec.Marshaler
 }
 
-func NewClient(bc types.BaseClient,cdc commoncodec.Marshaler) *tendermintClient {
-	return &tendermintClient{
+func NewClient(bc types.BaseClient, cdc commoncodec.Marshaler) Client {
+	return Client{
 		BaseClient: bc,
 		Marshaler:  cdc,
 	}
 }
 
-func (c tendermintClient) RegisterInterfaceTypes(registry cryptotypes.InterfaceRegistry) {
+func (c Client) RegisterInterfaceTypes(registry cryptotypes.InterfaceRegistry) {
 	tendermint.RegisterInterfaces(registry)
 }
 
 // GetClientState queries an IBC light client.
-func (c tendermintClient) GetClientState(chainName string) (tendermint.ClientState, error) {
-
+func (c Client) GetClientState(chainName string) (tibctypes.ClientState, error) {
+	var clientState tibctypes.ClientState
 	in := &tendermint.QueryClientStateRequest{
 		ChainName: chainName,
 	}
 
 	conn, err := c.GenConn()
 	if err != nil {
-		return tendermint.ClientState{}, types.Wrap(err)
+		return clientState, types.Wrap(err)
 	}
 
 	res, err := tendermint.NewQueryClient(conn).ClientState(
@@ -43,19 +43,18 @@ func (c tendermintClient) GetClientState(chainName string) (tendermint.ClientSta
 		in,
 	)
 	if err != nil {
-		return tendermint.ClientState{}, types.Wrap(err)
+		return clientState, types.Wrap(err)
 	}
-	var clientState tibctypes.ClientState
+
 	if err := c.Marshaler.UnpackAny(res.ClientState, &clientState); err != nil {
-		return tendermint.ClientState{}, types.Wrap(err)
+		return clientState, types.Wrap(err)
 	}
-	// todo ? change res to value?
-	return tendermint.ClientState{}, nil
+	return clientState, nil
 
 }
 
 // GetClientStates queries all the IBC light clients of a chain.
-func (c tendermintClient) GetClientStates() (*tendermint.QueryClientStatesResponse, error) {
+func (c Client) GetClientStates() ([]tibctypes.ClientState, error) {
 	in := &tendermint.QueryClientStatesRequest{}
 	conn, err := c.GenConn()
 	if err != nil {
@@ -65,18 +64,27 @@ func (c tendermintClient) GetClientStates() (*tendermint.QueryClientStatesRespon
 		context.Background(),
 		in,
 	)
-	// todo ? change res to value?
+	if err !=nil {
+		return nil ,types.Wrap(err)
+	}
+	clientState := make([]tibctypes.ClientState,4)
+	for index,value := range res.ClientStates{
+		if err := c.Marshaler.UnpackAny(value.ClientState, &clientState[index]); err != nil {
+			return nil, types.Wrap(err)
+		}
+	}
 
-	return res, err
+	return clientState, err
 }
 
 // GetConsensusState queries a consensus state associated with a client state at
 // a given height.
-func (c tendermintClient) GetConsensusState(chainName string, height uint64) (*tendermint.QueryConsensusStateResponse, error) {
+func (c Client) GetConsensusState(chainName string, height uint64) (tibctypes.ConsensusState, error) {
 	req := &tendermint.QueryConsensusStateRequest{
 		ChainName:      chainName,
 		RevisionHeight: height,
 	}
+
 	conn, err := c.GenConn()
 	if err != nil {
 		return nil, types.Wrap(err)
@@ -89,14 +97,18 @@ func (c tendermintClient) GetConsensusState(chainName string, height uint64) (*t
 	if err != nil {
 		return nil, types.Wrap(err)
 	}
-	// todo ? change res to value?
+	var consensusState tibctypes.ConsensusState
 
-	return res, nil
+	if err := c.Marshaler.UnpackAny(res.ConsensusState, &consensusState); err != nil {
+		return nil, types.Wrap(err)
+	}
+
+	return consensusState, nil
 }
 
 // ConsensusStates queries all the consensus state associated with a given
 // client.
-func (c tendermintClient) ConsensusStates(chainName string) (*tendermint.QueryConsensusStatesResponse, error) {
+func (c Client) GetConsensusStates(chainName string) ([]tibctypes.ConsensusState, error) {
 	req := &tendermint.QueryConsensusStatesRequest{
 		ChainName: chainName,
 	}
@@ -112,14 +124,18 @@ func (c tendermintClient) ConsensusStates(chainName string) (*tendermint.QueryCo
 	if err != nil {
 		return nil, types.Wrap(err)
 	}
-	// todo ? change res to value?
-
-	return res, nil
+	ConsensusState := make([]tibctypes.ConsensusState,4)
+	for index,value := range res.ConsensusStates{
+		if err := c.Marshaler.UnpackAny(value.ConsensusState, &ConsensusState[index]); err != nil {
+			return nil, types.Wrap(err)
+		}
+	}
+	return ConsensusState, nil
 }
 
 // Relayers queries all the relayers associated with a given
 // client.
-func (c tendermintClient) Relayers(chainName string) (*tendermint.QueryRelayersResponse, error) {
+func (c Client) Relayers(chainName string) ([]string, error) {
 	req := &tendermint.QueryRelayersRequest{
 		ChainName: chainName,
 	}
@@ -128,7 +144,7 @@ func (c tendermintClient) Relayers(chainName string) (*tendermint.QueryRelayersR
 		return nil, types.Wrap(err)
 	}
 
-	res, err := tendermint.NewQueryClient(conn).Relayers(
+	_, err = tendermint.NewQueryClient(conn).Relayers(
 		context.Background(),
 		req,
 	)
@@ -137,9 +153,9 @@ func (c tendermintClient) Relayers(chainName string) (*tendermint.QueryRelayersR
 	}
 	// todo ? change res to value?
 
-	return res, nil
+	return nil, nil
 }
-func (c tendermintClient) UpdateClient(msgUpdateClient tendermint.UpdateClientRequest) (*tendermint.MsgUpdateClientResponse, error) {
+func (c Client) UpdateClient(msgUpdateClient tendermint.UpdateClientRequest) (*tendermint.MsgUpdateClientResponse, error) {
 	req := &tendermint.MsgUpdateClient{}
 	conn, err := c.GenConn()
 	if err != nil {
