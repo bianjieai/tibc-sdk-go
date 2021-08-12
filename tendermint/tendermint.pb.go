@@ -5,6 +5,7 @@ package tendermint
 
 import (
 	fmt "fmt"
+	"github.com/bianjieai/tibc-sdk-go/client"
 	commitment "github.com/bianjieai/tibc-sdk-go/commitment"
 	_go "github.com/confio/ics23/go"
 	_ "github.com/gogo/protobuf/gogoproto"
@@ -45,7 +46,7 @@ type ClientState struct {
 	// defines how much new (untrusted) header's Time can drift into the future.
 	MaxClockDrift time.Duration `protobuf:"bytes,5,opt,name=max_clock_drift,json=maxClockDrift,proto3,stdduration" json:"max_clock_drift"`
 	// latest height the client was updated to
-	LatestHeight Height `protobuf:"bytes,6,opt,name=latest_height,json=latestHeight,proto3" json:"latest_height"`
+	LatestHeight client.Height `protobuf:"bytes,6,opt,name=latest_height,json=latestHeight,proto3" json:"latest_height"`
 	// proof specifications used in verifying counterparty state
 	ProofSpecs []*_go.ProofSpec `protobuf:"bytes,7,rep,name=proof_specs,json=proofSpecs,proto3" json:"proof_specs,omitempty"`
 	// commitment merkle prefix of the counterparty chain.
@@ -144,9 +145,9 @@ var xxx_messageInfo_ConsensusState proto.InternalMessageInfo
 // trusted validator set at the TrustedHeight.
 type Header struct {
 	*types.SignedHeader `protobuf:"bytes,1,opt,name=signed_header,json=signedHeader,proto3,embedded=signed_header" json:"signed_header,omitempty"`
-	ValidatorSet        *types.ValidatorSet `protobuf:"bytes,2,opt,name=validator_set,json=validatorSet,proto3" json:"validator_set,omitempty"`
-	TrustedHeight       Height              `protobuf:"bytes,3,opt,name=trusted_height,json=trustedHeight,proto3" json:"trusted_height"`
-	TrustedValidators   *types.ValidatorSet `protobuf:"bytes,4,opt,name=trusted_validators,json=trustedValidators,proto3" json:"trusted_validators,omitempty"`
+	ValidatorSet      *types.ValidatorSet `protobuf:"bytes,2,opt,name=validator_set,json=validatorSet,proto3" json:"validator_set,omitempty"`
+	TrustedHeight     client.Height       `protobuf:"bytes,3,opt,name=trusted_height,json=trustedHeight,proto3" json:"trusted_height"`
+	TrustedValidators *types.ValidatorSet `protobuf:"bytes,4,opt,name=trusted_validators,json=trustedValidators,proto3" json:"trusted_validators,omitempty"`
 }
 
 func (m *Header) Reset()         { *m = Header{} }
@@ -189,11 +190,11 @@ func (m *Header) GetValidatorSet() *types.ValidatorSet {
 	return nil
 }
 
-func (m *Header) GetTrustedHeight() Height {
+func (m *Header) GetTrustedHeight() client.Height {
 	if m != nil {
 		return m.TrustedHeight
 	}
-	return Height{}
+	return client.Height{}
 }
 
 func (m *Header) GetTrustedValidators() *types.ValidatorSet {

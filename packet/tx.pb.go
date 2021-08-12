@@ -6,7 +6,7 @@ package packet
 import (
 	context "context"
 	fmt "fmt"
-	tendermint "github.com/bianjieai/tibc-sdk-go/tendermint"
+	"github.com/bianjieai/tibc-sdk-go/client"
 	_ "github.com/gogo/protobuf/gogoproto"
 	grpc1 "github.com/gogo/protobuf/grpc"
 	proto "github.com/gogo/protobuf/proto"
@@ -32,9 +32,9 @@ const _ = proto.GoGoProtoPackageIsVersion3 // please upgrade the proto package
 // MsgRecvPacket receives incoming IBC packet
 type MsgRecvPacket struct {
 	Packet          Packet            `protobuf:"bytes,1,opt,name=packet,proto3" json:"packet"`
-	ProofCommitment []byte            `protobuf:"bytes,2,opt,name=proof_commitment,json=proofCommitment,proto3" json:"proof_commitment,omitempty" yaml:"proof_commitment"`
-	ProofHeight     tendermint.Height `protobuf:"bytes,3,opt,name=proof_height,json=proofHeight,proto3" json:"proof_height" yaml:"proof_height"`
-	Signer          string            `protobuf:"bytes,4,opt,name=signer,proto3" json:"signer,omitempty"`
+	ProofCommitment []byte        `protobuf:"bytes,2,opt,name=proof_commitment,json=proofCommitment,proto3" json:"proof_commitment,omitempty" yaml:"proof_commitment"`
+	ProofHeight     client.Height `protobuf:"bytes,3,opt,name=proof_height,json=proofHeight,proto3" json:"proof_height" yaml:"proof_height"`
+	Signer          string        `protobuf:"bytes,4,opt,name=signer,proto3" json:"signer,omitempty"`
 }
 
 func (m *MsgRecvPacket) Reset()         { *m = MsgRecvPacket{} }
@@ -111,9 +111,9 @@ var xxx_messageInfo_MsgRecvPacketResponse proto.InternalMessageInfo
 type MsgAcknowledgement struct {
 	Packet          Packet            `protobuf:"bytes,1,opt,name=packet,proto3" json:"packet"`
 	Acknowledgement []byte            `protobuf:"bytes,2,opt,name=acknowledgement,proto3" json:"acknowledgement,omitempty"`
-	ProofAcked      []byte            `protobuf:"bytes,3,opt,name=proof_acked,json=proofAcked,proto3" json:"proof_acked,omitempty" yaml:"proof_acked"`
-	ProofHeight     tendermint.Height `protobuf:"bytes,4,opt,name=proof_height,json=proofHeight,proto3" json:"proof_height" yaml:"proof_height"`
-	Signer          string            `protobuf:"bytes,5,opt,name=signer,proto3" json:"signer,omitempty"`
+	ProofAcked  []byte        `protobuf:"bytes,3,opt,name=proof_acked,json=proofAcked,proto3" json:"proof_acked,omitempty" yaml:"proof_acked"`
+	ProofHeight client.Height `protobuf:"bytes,4,opt,name=proof_height,json=proofHeight,proto3" json:"proof_height" yaml:"proof_height"`
+	Signer      string        `protobuf:"bytes,5,opt,name=signer,proto3" json:"signer,omitempty"`
 }
 
 func (m *MsgAcknowledgement) Reset()         { *m = MsgAcknowledgement{} }

@@ -4,17 +4,15 @@ import (
 	"fmt"
 	"testing"
 
-	sdk "github.com/irisnet/core-sdk-go"
 	"github.com/irisnet/core-sdk-go/common/crypto"
 	"github.com/irisnet/core-sdk-go/types"
 	"github.com/irisnet/core-sdk-go/types/store"
-
 )
 
 const (
-	nodeURI  = "tcp://localhost:26657"
-	grpcAddr = "localhost:9090"
-	chainID  = "irita-test"
+	nodeURI  = "tcp://192.168.232.140:26657"
+	grpcAddr = "192.168.232.140:9090"
+	chainID  = "testnet"
 	keyName  = "node0"
 	password = "12345678"
 	keyStore = `-----BEGIN TENDERMINT PRIVATE KEY-----
@@ -90,19 +88,14 @@ func Test_ClientCreat(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	//fmt.Println(client)
-	//addr , err := client.Key.Recover("test", "12345678", "strategy project text close add advance hint gaze rent future shoe winner dust reform scrub diagram trash ring critic vault edge potato pyramid fee")
 	_, err = client.Key.Import(keyName, password, keyStore)
-	//a,err:=client.BaseClient.QueryAccount("iaa1vmhh0lekt7nha9gkngqdjwleqvn9m24aemp7g2")
 	if err != nil {
 		panic(err)
 	}
-	//fmt.Println(client.sdkClient.Bank.QueryAccount(addrse))
-	//bankSend(addr)
-	//fmt.Println(client.sdkClient.GenConn())
-	//fmt.Println(client.tendermintClient.Getconnn())
+	getClientState(client)
+	getconesState(client)
 	getConsensusState(client)
-	//fmt.Println(a)
+	getConsensusState(client)
 }
 
 func getClientState(client clientforlightclient) {
@@ -145,35 +138,5 @@ func getConsensusStates(client clientforlightclient) {
 		}
 		fmt.Println(value.String())
 	}
-
-}
-func bankSend(client sdk.Client) {
-	addr, err := client.Key.Recover("test", "12345678", "strategy project text close add advance hint gaze rent future shoe winner dust reform scrub diagram trash ring critic vault edge potato pyramid fee")
-	//a, err := client.Key.Import("v1", "12345678", "-----BEGIN TENDERMINT PRIVATE KEY-----\nkdf: bcrypt\nsalt: E4EEAD39E485366E68E70812E16081D1\ntype: sm2\n\nXieOvCObvTx0I+7WIYlUeYIgrZvIf4aZFUaDCrWSPCIPmPHbo5fLSdax2vuCQfXl\nMEA7MIdFgxzKss4M/cmnwZOPoOjz/jZKPaE3q8g=\n=H9E3\n-----END TENDERMINT PRIVATE KEY-----")
-	//a,err:=client.BaseClient.QueryAccount("iaa1vmhh0lekt7nha9gkngqdjwleqvn9m24aemp7g2")
-	if err != nil {
-		panic(err)
-	}
-	acc, err := client.Bank.QueryAccount(addr)
-	fmt.Println(acc.Coins.String())
-	coins, _ := types.ParseDecCoins("100upoint")
-	to := "iaa18xqa8yd57jfvh0cdkex7hqn6t7zspzwwl6p7e3"
-	baseTx := types.BaseTx{
-		From:               "test",
-		Gas:                400000,
-		Memo:               "TEST",
-		Mode:               types.Commit,
-		Password:           "12345678",
-		SimulateAndExecute: false,
-		GasAdjustment:      1.5,
-	}
-
-	res, err := client.Bank.Send(to, coins, baseTx)
-	//res, err :=client.QueryToken("upoint")
-
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(res)
 
 }

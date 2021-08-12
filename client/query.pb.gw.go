@@ -2,11 +2,11 @@
 // source: tibc/core/client/v1/query.proto
 
 /*
-Package tendermint is a reverse proxy.
+Package client is a reverse proxy.
 
 It translates gRPC into RESTful JSON APIs.
 */
-package tendermint
+package client
 
 import (
 	"context"

@@ -1,8 +1,8 @@
 package integration
 
 import (
-	tibcclient "github.com/bianjieai/tibc-sdk-go"
-	"github.com/bianjieai/tibc-sdk-go/tendermint"
+	"github.com/bianjieai/tibc-sdk-go"
+	tibcclient "github.com/bianjieai/tibc-sdk-go/client"
 	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
 	sdk "github.com/irisnet/core-sdk-go"
 	"github.com/irisnet/core-sdk-go/bank"
@@ -23,7 +23,7 @@ type clientforlightclient struct {
 	types.BaseClient
 	Bank             bank.Client
 	Key              keys.Client
-	TendermintClient tendermint.ChainClient
+	TendermintClient tibcclient.ChainClient
 }
 
 func newClient(cfg types.ClientConfig) clientforlightclient {
@@ -32,7 +32,7 @@ func newClient(cfg types.ClientConfig) clientforlightclient {
 	// create a instance of baseClient
 	baseClient := client.NewBaseClient(cfg, encodingConfig, nil)
 	bankClient := bank.NewClient(baseClient, encodingConfig.Marshaler)
-	tendermintClient := tibcclient.NewClient(baseClient, encodingConfig.Marshaler)
+	tendermintClient := tibc_sdk_go.NewClient(baseClient, encodingConfig.Marshaler)
 	keysClient := keys.NewKeysClient(cfg, baseClient)
 
 	client := &clientforlightclient{
