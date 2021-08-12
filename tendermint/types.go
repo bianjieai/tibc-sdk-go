@@ -2,12 +2,34 @@ package tendermint
 
 import (
 	"fmt"
+	sdk "github.com/irisnet/core-sdk-go/types"
 	"sort"
+
+	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
 )
 
 const (
-	ModuleName = "client"
+	ModuleName = "tendermintClient"
 )
+var(
+	_ tibctypes.ClientState = &ClientState{}
+)
+
+func (c QueryClientStatesResponse)Route() string  {
+	return ModuleName
+}
+func (c QueryClientStatesResponse)Type() string  {
+	return "queryTendermintClient"
+}
+func (c QueryClientStatesResponse)ValidateBasic() error  {
+	return nil
+}
+func (c QueryClientStatesResponse)GetSignBytes() []byte{
+	return nil
+}
+func (c QueryClientStatesResponse)GetSigners() []sdk.AccAddress{
+	return nil
+}
 
 type IdentifiedClientStates []IdentifiedClientState
 type ClientsConsensusStates []ClientConsensusStates

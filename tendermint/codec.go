@@ -18,27 +18,25 @@ func init() {
 }
 
 func RegisterInterfaces(registry types.InterfaceRegistry) {
+
 	registry.RegisterImplementations(
 		(*tibctypes.ClientState)(nil),
 		&ClientState{},
 	)
 	registry.RegisterImplementations(
 		(*tibctypes.ConsensusState)(nil),
-		&ClientConsensusStates{},
+		&ConsensusState{},
 	)
-	registry.RegisterInterface(
-		"tendermint.ClientState",
-		(*tibctypes.ClientState)(nil),
-	)
-	registry.RegisterInterface(
-		"ibc.core.client.v1.ConsensusState",
-		(*tibctypes.ConsensusState)(nil),
-	)
-
-
-
-	//registry.RegisterImplementations(
-	//	(*sdk.Msg)(nil),
-	//	&MsgUpdateClient{},
-	//	)
 }
+//func UnpackClientState(any *types.Any) (ClientState, error) {
+//	if any == nil {
+//		return nil, errors.New("protobuf Any message cannot be nil")
+//	}
+//
+//	clientState, ok := any.GetCachedValue().(exported.ClientState)
+//	if !ok {
+//		return nil, sdkerrors.Wrapf(sdkerrors.ErrUnpackAny, "cannot unpack Any into ClientState %T", any)
+//	}
+//
+//	return clientState, nil
+//}
