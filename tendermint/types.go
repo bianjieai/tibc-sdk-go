@@ -1,11 +1,8 @@
-package client
+package tendermint
 
 import (
 	"fmt"
 	"sort"
-
-	"github.com/irisnet/core-sdk-go/client"
-	"google.golang.org/grpc"
 )
 
 const (
@@ -35,11 +32,3 @@ func (h Height) String() string {
 	return fmt.Sprintf("%d-%d", h.RevisionNumber, h.RevisionHeight)
 }
 
-func (c *queryStateClient) NewGrpcConn(address string) {
-	c.GRPCClient = client.NewGRPCClient(address)
-}
-
-func (c *queryStateClient) GenConn() (*grpc.ClientConn, error) {
-	conn, err := c.GRPCClient.GenConn()
-	return conn, err
-}

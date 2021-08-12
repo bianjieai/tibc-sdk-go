@@ -5,7 +5,7 @@ package packet
 
 import (
 	fmt "fmt"
-	_ "github.com/bianjieai/tibc-sdk-go/client"
+	_ "github.com/bianjieai/tibc-sdk-go/tendermint"
 	_ "github.com/gogo/protobuf/gogoproto"
 	proto "github.com/gogo/protobuf/proto"
 	io "io"

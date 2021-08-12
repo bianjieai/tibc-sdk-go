@@ -6,11 +6,11 @@ package packet
 import (
 	context "context"
 	fmt "fmt"
-	client "github.com/bianjieai/tibc-sdk-go/client"
-	query "github.com/cosmos/cosmos-sdk/types/query"
+	tendermint "github.com/bianjieai/tibc-sdk-go/tendermint"
 	_ "github.com/gogo/protobuf/gogoproto"
 	grpc1 "github.com/gogo/protobuf/grpc"
 	proto "github.com/gogo/protobuf/proto"
+	query "github.com/irisnet/core-sdk-go/types/query"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	grpc "google.golang.org/grpc"
 	codes "google.golang.org/grpc/codes"
@@ -105,7 +105,7 @@ type QueryPacketCommitmentResponse struct {
 	// merkle proof of existence
 	Proof []byte `protobuf:"bytes,2,opt,name=proof,proto3" json:"proof,omitempty"`
 	// height at which the proof was retrieved
-	ProofHeight client.Height `protobuf:"bytes,3,opt,name=proof_height,json=proofHeight,proto3" json:"proof_height"`
+	ProofHeight tendermint.Height `protobuf:"bytes,3,opt,name=proof_height,json=proofHeight,proto3" json:"proof_height"`
 }
 
 func (m *QueryPacketCommitmentResponse) Reset()         { *m = QueryPacketCommitmentResponse{} }
@@ -155,11 +155,11 @@ func (m *QueryPacketCommitmentResponse) GetProof() []byte {
 	return nil
 }
 
-func (m *QueryPacketCommitmentResponse) GetProofHeight() client.Height {
+func (m *QueryPacketCommitmentResponse) GetProofHeight() tendermint.Height {
 	if m != nil {
 		return m.ProofHeight
 	}
-	return client.Height{}
+	return tendermint.Height{}
 }
 
 // QueryPacketCommitmentsRequest is the request type for the
@@ -234,7 +234,7 @@ type QueryPacketCommitmentsResponse struct {
 	// pagination response
 	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 	// query block height
-	Height client.Height `protobuf:"bytes,3,opt,name=height,proto3" json:"height"`
+	Height tendermint.Height `protobuf:"bytes,3,opt,name=height,proto3" json:"height"`
 }
 
 func (m *QueryPacketCommitmentsResponse) Reset()         { *m = QueryPacketCommitmentsResponse{} }
@@ -284,11 +284,11 @@ func (m *QueryPacketCommitmentsResponse) GetPagination() *query.PageResponse {
 	return nil
 }
 
-func (m *QueryPacketCommitmentsResponse) GetHeight() client.Height {
+func (m *QueryPacketCommitmentsResponse) GetHeight() tendermint.Height {
 	if m != nil {
 		return m.Height
 	}
-	return client.Height{}
+	return tendermint.Height{}
 }
 
 // QueryPacketReceiptRequest is the request type for the
@@ -365,7 +365,7 @@ type QueryPacketReceiptResponse struct {
 	// merkle proof of existence
 	Proof []byte `protobuf:"bytes,3,opt,name=proof,proto3" json:"proof,omitempty"`
 	// height at which the proof was retrieved
-	ProofHeight client.Height `protobuf:"bytes,4,opt,name=proof_height,json=proofHeight,proto3" json:"proof_height"`
+	ProofHeight tendermint.Height `protobuf:"bytes,4,opt,name=proof_height,json=proofHeight,proto3" json:"proof_height"`
 }
 
 func (m *QueryPacketReceiptResponse) Reset()         { *m = QueryPacketReceiptResponse{} }
@@ -415,11 +415,11 @@ func (m *QueryPacketReceiptResponse) GetProof() []byte {
 	return nil
 }
 
-func (m *QueryPacketReceiptResponse) GetProofHeight() client.Height {
+func (m *QueryPacketReceiptResponse) GetProofHeight() tendermint.Height {
 	if m != nil {
 		return m.ProofHeight
 	}
-	return client.Height{}
+	return tendermint.Height{}
 }
 
 // QueryPacketAcknowledgementRequest is the request type for the
@@ -496,7 +496,7 @@ type QueryPacketAcknowledgementResponse struct {
 	// merkle proof of existence
 	Proof []byte `protobuf:"bytes,2,opt,name=proof,proto3" json:"proof,omitempty"`
 	// height at which the proof was retrieved
-	ProofHeight client.Height `protobuf:"bytes,3,opt,name=proof_height,json=proofHeight,proto3" json:"proof_height"`
+	ProofHeight tendermint.Height `protobuf:"bytes,3,opt,name=proof_height,json=proofHeight,proto3" json:"proof_height"`
 }
 
 func (m *QueryPacketAcknowledgementResponse) Reset()         { *m = QueryPacketAcknowledgementResponse{} }
@@ -546,11 +546,11 @@ func (m *QueryPacketAcknowledgementResponse) GetProof() []byte {
 	return nil
 }
 
-func (m *QueryPacketAcknowledgementResponse) GetProofHeight() client.Height {
+func (m *QueryPacketAcknowledgementResponse) GetProofHeight() tendermint.Height {
 	if m != nil {
 		return m.ProofHeight
 	}
-	return client.Height{}
+	return tendermint.Height{}
 }
 
 // QueryPacketAcknowledgementsRequest is the request type for the
@@ -625,7 +625,7 @@ type QueryPacketAcknowledgementsResponse struct {
 	// pagination response
 	Pagination *query.PageResponse `protobuf:"bytes,2,opt,name=pagination,proto3" json:"pagination,omitempty"`
 	// query block height
-	Height client.Height `protobuf:"bytes,3,opt,name=height,proto3" json:"height"`
+	Height tendermint.Height `protobuf:"bytes,3,opt,name=height,proto3" json:"height"`
 }
 
 func (m *QueryPacketAcknowledgementsResponse) Reset()         { *m = QueryPacketAcknowledgementsResponse{} }
@@ -675,11 +675,11 @@ func (m *QueryPacketAcknowledgementsResponse) GetPagination() *query.PageRespons
 	return nil
 }
 
-func (m *QueryPacketAcknowledgementsResponse) GetHeight() client.Height {
+func (m *QueryPacketAcknowledgementsResponse) GetHeight() tendermint.Height {
 	if m != nil {
 		return m.Height
 	}
-	return client.Height{}
+	return tendermint.Height{}
 }
 
 // QueryUnreceivedPacketsRequest is the request type for the
@@ -753,7 +753,7 @@ type QueryUnreceivedPacketsResponse struct {
 	// list of unreceived packet sequences
 	Sequences []uint64 `protobuf:"varint,1,rep,packed,name=sequences,proto3" json:"sequences,omitempty"`
 	// query block height
-	Height client.Height `protobuf:"bytes,2,opt,name=height,proto3" json:"height"`
+	Height tendermint.Height `protobuf:"bytes,2,opt,name=height,proto3" json:"height"`
 }
 
 func (m *QueryUnreceivedPacketsResponse) Reset()         { *m = QueryUnreceivedPacketsResponse{} }
@@ -796,11 +796,11 @@ func (m *QueryUnreceivedPacketsResponse) GetSequences() []uint64 {
 	return nil
 }
 
-func (m *QueryUnreceivedPacketsResponse) GetHeight() client.Height {
+func (m *QueryUnreceivedPacketsResponse) GetHeight() tendermint.Height {
 	if m != nil {
 		return m.Height
 	}
-	return client.Height{}
+	return tendermint.Height{}
 }
 
 // QueryUnreceivedAcks is the request type for the
@@ -874,7 +874,7 @@ type QueryUnreceivedAcksResponse struct {
 	// list of unreceived acknowledgement sequences
 	Sequences []uint64 `protobuf:"varint,1,rep,packed,name=sequences,proto3" json:"sequences,omitempty"`
 	// query block height
-	Height client.Height `protobuf:"bytes,2,opt,name=height,proto3" json:"height"`
+	Height tendermint.Height `protobuf:"bytes,2,opt,name=height,proto3" json:"height"`
 }
 
 func (m *QueryUnreceivedAcksResponse) Reset()         { *m = QueryUnreceivedAcksResponse{} }
@@ -917,11 +917,11 @@ func (m *QueryUnreceivedAcksResponse) GetSequences() []uint64 {
 	return nil
 }
 
-func (m *QueryUnreceivedAcksResponse) GetHeight() client.Height {
+func (m *QueryUnreceivedAcksResponse) GetHeight() tendermint.Height {
 	if m != nil {
 		return m.Height
 	}
-	return client.Height{}
+	return tendermint.Height{}
 }
 
 // QueryNextSequenceReceiveRequest is the request type for the
@@ -988,7 +988,7 @@ type QueryNextSequenceReceiveResponse struct {
 	// merkle proof of existence
 	Proof []byte `protobuf:"bytes,2,opt,name=proof,proto3" json:"proof,omitempty"`
 	// height at which the proof was retrieved
-	ProofHeight client.Height `protobuf:"bytes,3,opt,name=proof_height,json=proofHeight,proto3" json:"proof_height"`
+	ProofHeight tendermint.Height `protobuf:"bytes,3,opt,name=proof_height,json=proofHeight,proto3" json:"proof_height"`
 }
 
 func (m *QueryNextSequenceReceiveResponse) Reset()         { *m = QueryNextSequenceReceiveResponse{} }
@@ -1038,11 +1038,11 @@ func (m *QueryNextSequenceReceiveResponse) GetProof() []byte {
 	return nil
 }
 
-func (m *QueryNextSequenceReceiveResponse) GetProofHeight() client.Height {
+func (m *QueryNextSequenceReceiveResponse) GetProofHeight() tendermint.Height {
 	if m != nil {
 		return m.ProofHeight
 	}
-	return client.Height{}
+	return tendermint.Height{}
 }
 
 func init() {

@@ -1,31 +1,33 @@
-package client
+package tendermint
 
 import (
 	"context"
 
-	"github.com/irisnet/core-sdk-go/common/codec"
-	"github.com/irisnet/core-sdk-go/common/codec/types"
-	sdk "github.com/irisnet/core-sdk-go/types"
+	commoncodec "github.com/irisnet/core-sdk-go/common/codec"
+	cryptotypes "github.com/irisnet/core-sdk-go/common/codec/types"
+	"github.com/irisnet/core-sdk-go/types"
 )
 
-type Client struct {
-	sdk.BaseClient
-	codec.Marshaler
+type tendermintClient struct {
+	types.BaseClient
+	commoncodec.Marshaler
 }
 
-func NewClient(bc sdk.BaseClient, cbc codec.Marshaler) Client {
-	return Client{
+
+func NewClient(bc types.BaseClient,cdc commoncodec.Marshaler) *tendermintClient {
+	return &tendermintClient{
 		BaseClient: bc,
-		Marshaler:  cbc,
+		Marshaler:  cdc,
 	}
 }
 
-func (c Client) RegisterInterfaceTypes(registry types.InterfaceRegistry) {
+
+func (c tendermintClient) RegisterInterfaceTypes(registry cryptotypes.InterfaceRegistry) {
 	RegisterInterfaces(registry)
 }
 
 // GetClientState queries an IBC light client.
-func (c Client) GetClientState(chainName string) (*QueryClientStateResponse, error) {
+func (c tendermintClient) GetClientState(chainName string) (*QueryClientStateResponse, error) {
 
 	in := &QueryClientStateRequest{
 		ChainName: chainName,
@@ -33,7 +35,7 @@ func (c Client) GetClientState(chainName string) (*QueryClientStateResponse, err
 
 	conn, err := c.GenConn()
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return nil, types.Wrap(err)
 	}
 
 	res, err := NewQueryClient(conn).ClientState(
@@ -41,20 +43,23 @@ func (c Client) GetClientState(chainName string) (*QueryClientStateResponse, err
 		in,
 	)
 	if err != nil {
-		return &QueryClientStateResponse{}, sdk.Wrap(err)
+		return &QueryClientStateResponse{}, types.Wrap(err)
 	}
-
+	var clientState ClientState
+	if err := c.Marshaler.UnpackAny(res.ClientState, &clientState); err != nil {
+		return nil, types.Wrap(err)
+	}
 	// todo ? change res to value?
 	return res, nil
 
 }
 
 // GetClientStates queries all the IBC light clients of a chain.
-func (c Client) GetClientStates() (*QueryClientStatesResponse, error) {
+func (c tendermintClient) GetClientStates() (*QueryClientStatesResponse, error) {
 	in := &QueryClientStatesRequest{}
 	conn, err := c.GenConn()
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return nil, types.Wrap(err)
 	}
 	res, err := NewQueryClient(conn).ClientStates(
 		context.Background(),
@@ -67,14 +72,14 @@ func (c Client) GetClientStates() (*QueryClientStatesResponse, error) {
 
 // GetConsensusState queries a consensus state associated with a client state at
 // a given height.
-func (c Client) GetConsensusState(chainName string, height uint64) (*QueryConsensusStateResponse, error) {
+func (c tendermintClient) GetConsensusState(chainName string, height uint64) (*QueryConsensusStateResponse, error) {
 	req := &QueryConsensusStateRequest{
 		ChainName:      chainName,
 		RevisionHeight: height,
 	}
 	conn, err := c.GenConn()
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return nil, types.Wrap(err)
 	}
 
 	res, err := NewQueryClient(conn).ConsensusState(
@@ -82,7 +87,7 @@ func (c Client) GetConsensusState(chainName string, height uint64) (*QueryConsen
 		req,
 	)
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return nil, types.Wrap(err)
 	}
 	// todo ? change res to value?
 
@@ -91,13 +96,13 @@ func (c Client) GetConsensusState(chainName string, height uint64) (*QueryConsen
 
 // ConsensusStates queries all the consensus state associated with a given
 // client.
-func (c Client) ConsensusStates(chainName string) (*QueryConsensusStatesResponse, error) {
+func (c tendermintClient) ConsensusStates(chainName string) (*QueryConsensusStatesResponse, error) {
 	req := &QueryConsensusStatesRequest{
 		ChainName: chainName,
 	}
 	conn, err := c.GenConn()
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return nil, types.Wrap(err)
 	}
 
 	res, err := NewQueryClient(conn).ConsensusStates(
@@ -105,7 +110,7 @@ func (c Client) ConsensusStates(chainName string) (*QueryConsensusStatesResponse
 		req,
 	)
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return nil, types.Wrap(err)
 	}
 	// todo ? change res to value?
 
@@ -114,13 +119,13 @@ func (c Client) ConsensusStates(chainName string) (*QueryConsensusStatesResponse
 
 // Relayers queries all the relayers associated with a given
 // client.
-func (c Client) Relayers(chainName string) (*QueryRelayersResponse, error) {
+func (c tendermintClient) Relayers(chainName string) (*QueryRelayersResponse, error) {
 	req := &QueryRelayersRequest{
 		ChainName: chainName,
 	}
 	conn, err := c.GenConn()
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return nil, types.Wrap(err)
 	}
 
 	res, err := NewQueryClient(conn).Relayers(
@@ -128,24 +133,24 @@ func (c Client) Relayers(chainName string) (*QueryRelayersResponse, error) {
 		req,
 	)
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return nil, types.Wrap(err)
 	}
 	// todo ? change res to value?
 
 	return res, nil
 }
-func (c Client) UpdateClient(msgUpdateClient UpdateClientRequest) (*MsgUpdateClientResponse, error) {
+func (c tendermintClient) UpdateClient(msgUpdateClient UpdateClientRequest) (*MsgUpdateClientResponse, error) {
 	req := &MsgUpdateClient{}
 	conn, err := c.GenConn()
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return nil, types.Wrap(err)
 	}
 	res, err := NewMsgClient(conn).UpdateClient(
 		context.Background(),
 		req,
 	)
 	if err != nil {
-		return nil, sdk.Wrap(err)
+		return nil, types.Wrap(err)
 	}
 	// todo ? change res to value?
 	return res, nil
