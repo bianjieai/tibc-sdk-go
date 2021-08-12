@@ -1,3 +1,3 @@
 # tibc-sdk-go
 
-Golang Implementation of SDK for Terse IBC
+Golang SDK for Terse IBC
