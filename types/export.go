@@ -1,6 +1,5 @@
 package types
 
-
 type UpdateClientRequest struct {
 	ChainName string `json:"chain_name"`
 	// header to update the light client
@@ -13,17 +12,16 @@ type UpdateClientRequest struct {
 // all clients must use the concrete implementation in types
 type Height interface {
 	IsZero() bool
-	LT(Height) bool
-	LTE(Height) bool
-	EQ(Height) bool
-	GT(Height) bool
-	GTE(Height) bool
+	//LT(Height) bool
+	//LTE(Height) bool
+	//EQ(Height) bool
+	//GT(Height) bool
+	//GTE(Height) bool
 	GetRevisionNumber() uint64
 	GetRevisionHeight() uint64
 	Increment() Height
 	Decrement() (Height, bool)
 	String() string
-
 }
 
 // Prefix implements spec:CommitmentPrefix.
@@ -32,7 +30,6 @@ type Prefix interface {
 	Bytes() []byte
 	Empty() bool
 }
-
 
 // Root implements spec:CommitmentRoot.
 // A root is constructed from a set of key-value pairs,

@@ -3,6 +3,9 @@ package tendermint
 import (
 	"bytes"
 	"errors"
+	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/bianjieai/tibc-sdk-go/client"
@@ -31,8 +34,19 @@ func (h Header) ClientType() string {
 // header is nil.
 // NOTE: the header.Header is checked to be non nil in ValidateBasic.
 func (h Header) GetHeight() types.Height {
-	revision := client.ParseChainID(h.Header.ChainID)
-	return client.NewHeight(revision, uint64(h.Header.Height))
+	if !client.IsRevisionFormat(h.Header.ChainID) {
+		// chainID is not in revision format, return 0 as default
+		return client.NewHeight(0, uint64(h.Header.Height))
+	} else {
+		splitStr := strings.Split(h.Header.ChainID, "-")
+		revision, err := strconv.ParseUint(splitStr[len(splitStr)-1], 10, 64)
+		// sanity check: error should always be nil since regex only allows numbers in last element
+		if err != nil {
+			panic(fmt.Sprintf("regex allowed non-number value as last split element for chainID: %s", h.Header.ChainID))
+		}
+		return client.NewHeight(revision, uint64(h.Header.Height))
+	}
+
 }
 
 // GetTime returns the current block timestamp. It returns a zero time if
@@ -48,34 +62,28 @@ func (h Header) GetTime() time.Time {
 // with MsgCreateClient
 func (h Header) ValidateBasic() error {
 	if h.SignedHeader == nil {
-		return errors.New( "tendermint signed header cannot be nil")
+		return errors.New("tendermint signed header cannot be nil")
 	}
 	if h.Header == nil {
-		return errors.New( "tendermint header cannot be nil")
+		return errors.New("tendermint header cannot be nil")
 	}
 	tmSignedHeader, err := tmtypes.SignedHeaderFromProto(h.SignedHeader)
 	if err != nil {
-		return errors.New( "header is not a tendermint header")
+		return errors.New("header is not a tendermint header")
 	}
 	if err := tmSignedHeader.ValidateBasic(h.Header.GetChainID()); err != nil {
-		return errors.New( "header failed basic validation")
-	}
-
-	// TrustedHeight is less than Header for updates
-	// and less than or equal to Header for misbehaviour
-	if h.TrustedHeight.GT(h.GetHeight()) {
-		return errors.New( "TrustedHeight must be less than or equal to header height ")
+		return errors.New("header failed basic validation")
 	}
 
 	if h.ValidatorSet == nil {
-		return errors.New( "validator set is nil")
+		return errors.New("validator set is nil")
 	}
 	tmValset, err := tmtypes.ValidatorSetFromProto(h.ValidatorSet)
 	if err != nil {
-		return errors.New( "validator set is not tendermint validator set")
+		return errors.New("validator set is not tendermint validator set")
 	}
 	if !bytes.Equal(h.Header.ValidatorsHash, tmValset.Hash()) {
-		return errors.New( "validator set does not match hash")
+		return errors.New("validator set does not match hash")
 	}
 	return nil
 }

@@ -25,6 +25,7 @@ mGlFzRtegvA4+A8n5sCIjwqnPMz8hX0IF9ltLjQ=
 =rDPe
 -----END TENDERMINT PRIVATE KEY-----`
 )
+
 type TokenManager struct{}
 
 func (TokenManager TokenManager) QueryToken(denom string) (types.Token, error) {
@@ -103,6 +104,8 @@ func getClientState(client clientforlightclient) {
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println(clientState1.Validate())
+	fmt.Println(clientState1.GetLatestHeight().String())
 	fmt.Println(clientState1.ClientType())
 	fmt.Println(clientState1.String())
 }
@@ -111,7 +114,7 @@ func getconesState(client clientforlightclient) {
 	if err != nil {
 		panic(err)
 	}
-	for _,value := range clientState1 {
+	for _, value := range clientState1 {
 		if value == nil {
 			break
 		}
@@ -120,10 +123,12 @@ func getconesState(client clientforlightclient) {
 }
 
 func getConsensusState(client clientforlightclient) {
-	consensusState1, err := client.TendermintClient.GetConsensusState("testCreateClient",8)
+	consensusState1, err := client.TendermintClient.GetConsensusState("testCreateClient", 8)
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println(consensusState1.GetRoot().GetHash())
+	fmt.Println(consensusState1.ClientType())
 	fmt.Println(consensusState1.GetTimestamp())
 	fmt.Println(consensusState1.String())
 
@@ -133,11 +138,10 @@ func getConsensusStates(client clientforlightclient) {
 	if err != nil {
 		panic(err)
 	}
-	for _,value := range consensusState1 {
+	for _, value := range consensusState1 {
 		if value == nil {
 			break
 		}
 		fmt.Println(value.String())
 	}
 }
-

@@ -1,12 +1,8 @@
 package client
 
 import (
-	"errors"
 	"fmt"
-	"math/big"
 	"regexp"
-	"strconv"
-	"strings"
 
 	"github.com/bianjieai/tibc-sdk-go/types"
 )
@@ -41,57 +37,6 @@ func (h Height) GetRevisionHeight() uint64 {
 	return h.RevisionHeight
 }
 
-// Compare implements a method to compare two heights. When comparing two heights a, b
-// we can call a.Compare(b) which will return
-// -1 if a < b
-// 0  if a = b
-// 1  if a > b
-//
-// It first compares based on revision numbers, whichever has the higher revision number is the higher height
-// If revision number is the same, then the revision height is compared
-func (h Height) Compare(other types.Height) int64 {
-	height, ok := other.(Height)
-	if !ok {
-		panic(fmt.Sprintf("cannot compare against invalid height type: %T. expected height type: %T", other, h))
-	}
-	var a, b big.Int
-	if h.RevisionNumber != height.RevisionNumber {
-		a.SetUint64(h.RevisionNumber)
-		b.SetUint64(height.RevisionNumber)
-	} else {
-		a.SetUint64(h.RevisionHeight)
-		b.SetUint64(height.RevisionHeight)
-	}
-	return int64(a.Cmp(&b))
-}
-
-// LT Helper comparison function returns true if h < other
-func (h Height) LT(other types.Height) bool {
-	return h.Compare(other) == -1
-}
-
-// LTE Helper comparison function returns true if h <= other
-func (h Height) LTE(other types.Height) bool {
-	cmp := h.Compare(other)
-	return cmp <= 0
-}
-
-// GT Helper comparison function returns true if h > other
-func (h Height) GT(other types.Height) bool {
-	return h.Compare(other) == 1
-}
-
-// GTE Helper comparison function returns true if h >= other
-func (h Height) GTE(other types.Height) bool {
-	cmp := h.Compare(other)
-	return cmp >= 0
-}
-
-// EQ Helper comparison function returns true if h == other
-func (h Height) EQ(other types.Height) bool {
-	return h.Compare(other) == 0
-}
-
 // String returns a string representation of Height
 func (h Height) String() string {
 	return fmt.Sprintf("%d-%d", h.RevisionNumber, h.RevisionHeight)
@@ -115,51 +60,4 @@ func (h Height) Increment() types.Height {
 // IsZero returns true if height revision and revision-height are both 0
 func (h Height) IsZero() bool {
 	return h.RevisionNumber == 0 && h.RevisionHeight == 0
-}
-
-// MustParseHeight will attempt to parse a string representation of a height and panic if
-// parsing fails.
-func MustParseHeight(heightStr string) Height {
-	height, err := ParseHeight(heightStr)
-	if err != nil {
-		panic(err)
-	}
-
-	return height
-}
-
-// ParseHeight is a utility function that takes a string representation of the height
-// and returns a Height struct
-func ParseHeight(heightStr string) (Height, error) {
-	splitStr := strings.Split(heightStr, "-")
-	if len(splitStr) != 2 {
-		return Height{}, errors.New("expected height string format: {revision}-{height}.s")
-	}
-	revisionNumber, err := strconv.ParseUint(splitStr[0], 10, 64)
-	if err != nil {
-		return Height{}, errors.New(" invalid revision number .")
-	}
-	revisionHeight, err := strconv.ParseUint(splitStr[1], 10, 64)
-	if err != nil {
-		return Height{}, errors.New("invalid revision height. ")
-	}
-	return NewHeight(revisionNumber, revisionHeight), nil
-}
-
-// ParseChainID is a utility function that returns an revision number from the given ChainID.
-// ParseChainID attempts to parse a chain id in the format: `{chainID}-{revision}`
-// and return the revisionnumber as a uint64.
-// If the chainID is not in the expected format, a default revision value of 0 is returned.
-func ParseChainID(chainID string) uint64 {
-	if !IsRevisionFormat(chainID) {
-		// chainID is not in revision format, return 0 as default
-		return 0
-	}
-	splitStr := strings.Split(chainID, "-")
-	revision, err := strconv.ParseUint(splitStr[len(splitStr)-1], 10, 64)
-	// sanity check: error should always be nil since regex only allows numbers in last element
-	if err != nil {
-		panic(fmt.Sprintf("regex allowed non-number value as last split element for chainID: %s", chainID))
-	}
-	return revision
 }
