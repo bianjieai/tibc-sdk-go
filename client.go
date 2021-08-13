@@ -2,10 +2,12 @@ package tibc_sdk_go
 
 import (
 	"context"
+	"errors"
 
 	"github.com/bianjieai/tibc-sdk-go/client"
 	"github.com/bianjieai/tibc-sdk-go/tendermint"
 	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
+	"github.com/gogo/protobuf/proto"
 	commoncodec "github.com/irisnet/core-sdk-go/common/codec"
 	cryptotypes "github.com/irisnet/core-sdk-go/common/codec/types"
 	"github.com/irisnet/core-sdk-go/types"
@@ -16,8 +18,8 @@ type Client struct {
 	commoncodec.Marshaler
 }
 
-func NewClient(bc types.BaseClient, cdc commoncodec.Marshaler) Client {
-	return Client{
+func NewClient(bc types.BaseClient, cdc commoncodec.Marshaler) client.ChainClient {
+	return &Client{
 		BaseClient: bc,
 		Marshaler:  cdc,
 	}
@@ -25,6 +27,10 @@ func NewClient(bc types.BaseClient, cdc commoncodec.Marshaler) Client {
 
 func (c Client) RegisterInterfaceTypes(registry cryptotypes.InterfaceRegistry) {
 	tendermint.RegisterInterfaces(registry)
+}
+
+func (c Client) Name() string {
+	return "tibc"
 }
 
 // GetClientState queries an IBC light client.
@@ -154,4 +160,27 @@ func (c Client) Relayers(chainName string) ([]string, error) {
 	}
 
 	return nil, nil
+}
+
+func (c Client) UpdateClient(req tibctypes.UpdateClientRequest, baseTx types.BaseTx) (types.ResultTx, types.Error) {
+	owner, err := c.QueryAddress(baseTx.From, baseTx.Password)
+	if err != nil {
+		return types.ResultTx{}, types.Wrap(err)
+	}
+	protoHeader, ok := req.Header.(proto.Message)
+	if !ok {
+		return types.ResultTx{}, types.Wrap(errors.New("cannot proto marshal "))
+	}
+	res, errs := cryptotypes.NewAnyWithValue(protoHeader)
+	if errs != nil {
+		return types.ResultTx{}, types.Wrap(errs)
+	}
+	msg := &client.MsgUpdateClient{
+		ChainName: req.ChainName,
+		// header to update the light client
+		Header: res,
+		// signer address
+		Signer: owner.String(),
+	}
+	return c.BuildAndSend([]types.Msg{msg}, baseTx)
 }

@@ -1,9 +1,8 @@
 package types
 
 import (
- 	"github.com/irisnet/core-sdk-go/common/codec/types"
+	"github.com/irisnet/core-sdk-go/common/codec/types"
 )
-
 
 func RegisterInterfaces(registry types.InterfaceRegistry) {
 	registry.RegisterInterface(
