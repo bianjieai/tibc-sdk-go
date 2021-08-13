@@ -1,7 +1,6 @@
 package client
 
 import (
-	"fmt"
 	sdk "github.com/irisnet/core-sdk-go/types"
 	"sort"
 )
@@ -27,11 +26,6 @@ func (ics IdentifiedClientStates) Swap(i, j int) { ics[i], ics[j] = ics[j], ics[
 func (ics IdentifiedClientStates) Sort() IdentifiedClientStates {
 	sort.Sort(ics)
 	return ics
-}
-
-// String returns a string representation of Height
-func (h Height) String() string {
-	return fmt.Sprintf("%d-%d", h.RevisionNumber, h.RevisionHeight)
 }
 
 

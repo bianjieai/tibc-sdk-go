@@ -2,6 +2,8 @@ package tibc_sdk_go
 
 import (
 	"context"
+	"errors"
+	"github.com/gogo/protobuf/proto"
 
 	"github.com/bianjieai/tibc-sdk-go/client"
 	"github.com/bianjieai/tibc-sdk-go/tendermint"
@@ -165,11 +167,18 @@ func (c Client) UpdateClient(req tibctypes.UpdateClientRequest, baseTx types.Bas
 	if err != nil {
 		return types.ResultTx{}, types.Wrap(err)
 	}
-
+	protoHeader, ok := req.Header.(proto.Message)
+	if !ok {
+		return types.ResultTx{}, types.Wrap(errors.New("cannot proto marshal "))
+	}
+	res ,errs := cryptotypes.NewAnyWithValue(protoHeader)
+	if errs!=nil{
+		return types.ResultTx{}, types.Wrap(errs)
+	}
 	msg := &client.MsgUpdateClient{
 		ChainName: req.ChainName,
 		// header to update the light client
-		Header: req.Header,
+		Header: res,
 		// signer address
 		Signer: owner.String(),
 	}

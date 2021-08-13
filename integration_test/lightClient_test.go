@@ -95,7 +95,7 @@ func Test_ClientCreat(t *testing.T) {
 	getClientState(client)
 	getconesState(client)
 	getConsensusState(client)
-	getConsensusState(client)
+	getConsensusStates(client)
 }
 
 func getClientState(client clientforlightclient) {
@@ -103,6 +103,7 @@ func getClientState(client clientforlightclient) {
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println(clientState1.ClientType())
 	fmt.Println(clientState1.String())
 }
 func getconesState(client clientforlightclient) {
@@ -123,7 +124,7 @@ func getConsensusState(client clientforlightclient) {
 	if err != nil {
 		panic(err)
 	}
-
+	fmt.Println(consensusState1.GetTimestamp())
 	fmt.Println(consensusState1.String())
 
 }
@@ -138,5 +139,5 @@ func getConsensusStates(client clientforlightclient) {
 		}
 		fmt.Println(value.String())
 	}
-
 }
+
