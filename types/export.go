@@ -9,7 +9,7 @@ type UpdateClientRequest struct {
 	Signer string `json:"signer"`
 }
 
-// Height is a wrapper interface over clienttypes.Height
+// Height is a wrapper interface over client.Height
 // all clients must use the concrete implementation in types
 type Height interface {
 	IsZero() bool

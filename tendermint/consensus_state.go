@@ -2,10 +2,10 @@ package tendermint
 
 import (
 	"errors"
-	"github.com/bianjieai/tibc-sdk-go/types"
 	"time"
 
 	"github.com/bianjieai/tibc-sdk-go/commitment"
+	"github.com/bianjieai/tibc-sdk-go/types"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	tmtypes "github.com/tendermint/tendermint/types"
 )
@@ -44,10 +44,10 @@ func (cs ConsensusState) ValidateBasic() error {
 		return errors.New("root cannot be empty")
 	}
 	if err := tmtypes.ValidateHash(cs.NextValidatorsHash); err != nil {
-		return errors.New( "next validators hash is invalid")
+		return errors.New("next validators hash is invalid")
 	}
 	if cs.Timestamp.Unix() <= 0 {
-		return errors.New( "timestamp must be a positive Unix time")
+		return errors.New("timestamp must be a positive Unix time")
 	}
 	return nil
 }

@@ -13,7 +13,7 @@ func (cs ClientState) GetLatestHeight() types.Height {
 	return cs.LatestHeight
 }
 
-// GetChainID returns the chain-id
+// GetChainId returns the chain-id
 func (cs ClientState) GetChainId() string {
 	return cs.ChainId
 }

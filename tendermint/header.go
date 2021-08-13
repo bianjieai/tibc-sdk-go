@@ -3,9 +3,9 @@ package tendermint
 import (
 	"bytes"
 	"errors"
-	"github.com/bianjieai/tibc-sdk-go/client"
 	"time"
 
+	"github.com/bianjieai/tibc-sdk-go/client"
 	commitmenttypes "github.com/bianjieai/tibc-sdk-go/commitment"
 	"github.com/bianjieai/tibc-sdk-go/types"
 	tmtypes "github.com/tendermint/tendermint/types"

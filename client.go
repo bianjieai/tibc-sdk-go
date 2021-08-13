@@ -3,11 +3,11 @@ package tibc_sdk_go
 import (
 	"context"
 	"errors"
-	"github.com/gogo/protobuf/proto"
 
 	"github.com/bianjieai/tibc-sdk-go/client"
 	"github.com/bianjieai/tibc-sdk-go/tendermint"
 	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
+	"github.com/gogo/protobuf/proto"
 	commoncodec "github.com/irisnet/core-sdk-go/common/codec"
 	cryptotypes "github.com/irisnet/core-sdk-go/common/codec/types"
 	"github.com/irisnet/core-sdk-go/types"
@@ -171,8 +171,8 @@ func (c Client) UpdateClient(req tibctypes.UpdateClientRequest, baseTx types.Bas
 	if !ok {
 		return types.ResultTx{}, types.Wrap(errors.New("cannot proto marshal "))
 	}
-	res ,errs := cryptotypes.NewAnyWithValue(protoHeader)
-	if errs!=nil{
+	res, errs := cryptotypes.NewAnyWithValue(protoHeader)
+	if errs != nil {
 		return types.ResultTx{}, types.Wrap(errs)
 	}
 	msg := &client.MsgUpdateClient{

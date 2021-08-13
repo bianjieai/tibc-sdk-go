@@ -141,7 +141,7 @@ func ParseHeight(heightStr string) (Height, error) {
 	}
 	revisionHeight, err := strconv.ParseUint(splitStr[1], 10, 64)
 	if err != nil {
-		return Height{}, errors.New( "invalid revision height. ")
+		return Height{}, errors.New("invalid revision height. ")
 	}
 	return NewHeight(revisionNumber, revisionHeight), nil
 }
@@ -163,4 +163,3 @@ func ParseChainID(chainID string) uint64 {
 	}
 	return revision
 }
-

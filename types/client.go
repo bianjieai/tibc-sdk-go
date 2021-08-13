@@ -4,8 +4,6 @@ import (
 	"github.com/gogo/protobuf/proto"
 )
 
-
-
 // ClientState defines the required common functions for light clients.
 type ClientState interface {
 	proto.Message
@@ -17,7 +15,6 @@ type ClientState interface {
 	GetDelayTime() uint64
 	GetDelayBlock() uint64
 	GetPrefix() Prefix
-
 }
 
 // ConsensusState is the state of the consensus process
@@ -35,6 +32,7 @@ type ConsensusState interface {
 
 	ValidateBasic() error
 }
+
 // Header is the consensus state update information
 type Header interface {
 	proto.Message
@@ -43,5 +41,3 @@ type Header interface {
 	GetHeight() Height
 	ValidateBasic() error
 }
-
-

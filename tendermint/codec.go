@@ -34,6 +34,7 @@ func RegisterInterfaces(registry types.InterfaceRegistry) {
 		&client.MsgUpdateClient{},
 	)
 }
+
 //func UnpackClientState(any *types.Any) (ClientState, error) {
 //	if any == nil {
 //		return nil, errors.New("protobuf Any message cannot be nil")

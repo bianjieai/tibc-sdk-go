@@ -1,14 +1,10 @@
 package client
 
 import (
-	sdk "github.com/irisnet/core-sdk-go/types"
 	"sort"
-)
 
-const (
-	ModuleName = "tendermintClient"
+	sdk "github.com/irisnet/core-sdk-go/types"
 )
-
 
 type IdentifiedClientStates []IdentifiedClientState
 type ClientsConsensusStates []ClientConsensusStates
@@ -28,7 +24,6 @@ func (ics IdentifiedClientStates) Sort() IdentifiedClientStates {
 	return ics
 }
 
-
 func (m *MsgUpdateClient) Route() string {
 	return "tibc"
 }
@@ -42,11 +37,13 @@ func (m *MsgUpdateClient) ValidateBasic() error {
 }
 
 func (m *MsgUpdateClient) GetSignBytes() []byte {
-	panic("IBC messages do not support amino")}
+	panic("IBC messages do not support amino")
+}
 
 func (m *MsgUpdateClient) GetSigners() []sdk.AccAddress {
 	accAddr, err := sdk.AccAddressFromBech32(m.Signer)
 	if err != nil {
 		panic(err)
 	}
-	return []sdk.AccAddress{accAddr}}
+	return []sdk.AccAddress{accAddr}
+}

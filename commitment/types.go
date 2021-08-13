@@ -1,10 +1,12 @@
 package commitment
 
 import (
+	"net/url"
+
 	"github.com/bianjieai/tibc-sdk-go/types"
 	ics23 "github.com/confio/ics23/go"
-	"net/url"
 )
+
 var sdkSpecs = []*ics23.ProofSpec{ics23.IavlSpec, ics23.TendermintSpec}
 
 func (mp MerklePath) String() string {

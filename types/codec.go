@@ -4,7 +4,6 @@ import (
 	"github.com/irisnet/core-sdk-go/common/codec/types"
 )
 
-
 func RegisterInterfaces(registry types.InterfaceRegistry) {
 	registry.RegisterInterface(
 		"ibc.core.client.v1.ClientState",
