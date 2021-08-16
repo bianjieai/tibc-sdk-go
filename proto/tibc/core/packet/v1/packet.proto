@@ -2,9 +2,9 @@ syntax = "proto3";
 package tibc.core.packet.v1;
 
 option go_package = "github.com/bianjieai/tibc-sdk-go/packet";
+;
 
 import "gogoproto/gogo.proto";
-import "tibc/core/client/v1/client.proto";
 
 // Packet defines a type that carries data across different chains through IBC
 message Packet {
@@ -54,6 +54,6 @@ message Acknowledgement {
   // response contains either a result or an error and must be non-empty
   oneof response {
     bytes  result = 21;
-    string error = 22;
+    string error  = 22;
   }
 }
