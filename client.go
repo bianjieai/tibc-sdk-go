@@ -2,12 +2,9 @@ package tibc_sdk_go
 
 import (
 	"context"
-	"errors"
-
 	"github.com/bianjieai/tibc-sdk-go/client"
 	"github.com/bianjieai/tibc-sdk-go/tendermint"
 	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
-	"github.com/gogo/protobuf/proto"
 	commoncodec "github.com/irisnet/core-sdk-go/common/codec"
 	cryptotypes "github.com/irisnet/core-sdk-go/common/codec/types"
 	"github.com/irisnet/core-sdk-go/types"
@@ -18,8 +15,8 @@ type Client struct {
 	commoncodec.Marshaler
 }
 
-func NewClient(bc types.BaseClient, cdc commoncodec.Marshaler) client.ChainClient {
-	return &Client{
+func NewClient(bc types.BaseClient, cdc commoncodec.Marshaler) Client {
+	return Client{
 		BaseClient: bc,
 		Marshaler:  cdc,
 	}
@@ -151,7 +148,7 @@ func (c Client) Relayers(chainName string) ([]string, error) {
 		return nil, types.Wrap(err)
 	}
 
-	_, err = client.NewQueryClient(conn).Relayers(
+	relay, err := client.NewQueryClient(conn).Relayers(
 		context.Background(),
 		req,
 	)
@@ -159,7 +156,7 @@ func (c Client) Relayers(chainName string) ([]string, error) {
 		return nil, types.Wrap(err)
 	}
 
-	return nil, nil
+	return relay.Relayers, nil
 }
 
 func (c Client) UpdateClient(req tibctypes.UpdateClientRequest, baseTx types.BaseTx) (types.ResultTx, types.Error) {
@@ -167,11 +164,7 @@ func (c Client) UpdateClient(req tibctypes.UpdateClientRequest, baseTx types.Bas
 	if err != nil {
 		return types.ResultTx{}, types.Wrap(err)
 	}
-	protoHeader, ok := req.Header.(proto.Message)
-	if !ok {
-		return types.ResultTx{}, types.Wrap(errors.New("cannot proto marshal "))
-	}
-	res, errs := cryptotypes.NewAnyWithValue(protoHeader)
+	res, errs := cryptotypes.NewAnyWithValue(req.Header)
 	if errs != nil {
 		return types.ResultTx{}, types.Wrap(errs)
 	}
