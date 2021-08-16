@@ -1,8 +1,7 @@
 package integration
 
 import (
-	"github.com/bianjieai/tibc-sdk-go"
-	tibcclient "github.com/bianjieai/tibc-sdk-go/client"
+	tibc "github.com/bianjieai/tibc-sdk-go"
 	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
 	sdk "github.com/irisnet/core-sdk-go"
 	"github.com/irisnet/core-sdk-go/bank"
@@ -12,6 +11,7 @@ import (
 	cryptotypes "github.com/irisnet/core-sdk-go/common/codec/types"
 	"github.com/irisnet/core-sdk-go/types"
 	txtypes "github.com/irisnet/core-sdk-go/types/tx"
+	"github.com/irisnet/irismod-sdk-go/nft"
 	"github.com/tendermint/tendermint/libs/log"
 )
 
@@ -23,7 +23,8 @@ type clientforlightclient struct {
 	types.BaseClient
 	Bank             bank.Client
 	Key              keys.Client
-	TendermintClient tibcclient.ChainClient
+	NFT              nft.Client
+	TendermintClient tibc.Client
 }
 
 func newClient(cfg types.ClientConfig) clientforlightclient {
@@ -32,9 +33,9 @@ func newClient(cfg types.ClientConfig) clientforlightclient {
 	// create a instance of baseClient
 	baseClient := client.NewBaseClient(cfg, encodingConfig, nil)
 	bankClient := bank.NewClient(baseClient, encodingConfig.Marshaler)
-	tendermintClient := tibc_sdk_go.NewClient(baseClient, encodingConfig.Marshaler)
+	tendermintClient := tibc.NewClient(baseClient, encodingConfig.Marshaler)
 	keysClient := keys.NewKeysClient(cfg, baseClient)
-
+	nftClient := nft.NewClient(baseClient, encodingConfig.Marshaler)
 	client := &clientforlightclient{
 		logger:           baseClient.Logger(),
 		BaseClient:       baseClient,
@@ -43,10 +44,12 @@ func newClient(cfg types.ClientConfig) clientforlightclient {
 		Bank:             bankClient,
 		TendermintClient: tendermintClient,
 		Key:              keysClient,
+		NFT:              nftClient,
 	}
 
 	client.registerModule(
 		bankClient,
+		nftClient,
 		tendermintClient,
 	)
 
