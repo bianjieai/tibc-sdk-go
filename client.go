@@ -3,11 +3,13 @@ package tibc_sdk_go
 import (
 	"context"
 	"github.com/bianjieai/tibc-sdk-go/client"
+	"github.com/bianjieai/tibc-sdk-go/packet"
 	"github.com/bianjieai/tibc-sdk-go/tendermint"
 	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
 	commoncodec "github.com/irisnet/core-sdk-go/common/codec"
 	cryptotypes "github.com/irisnet/core-sdk-go/common/codec/types"
 	"github.com/irisnet/core-sdk-go/types"
+	"github.com/irisnet/core-sdk-go/types/query"
 )
 
 type Client struct {
@@ -176,4 +178,136 @@ func (c Client) UpdateClient(req tibctypes.UpdateClientRequest, baseTx types.Bas
 		Signer: owner.String(),
 	}
 	return c.BuildAndSend([]types.Msg{msg}, baseTx)
+}
+
+func (c Client) PacketCommitment(destChain string, sourceChain string, sequence uint64) (*packet.QueryPacketCommitmentResponse, error) {
+	req := &packet.QueryPacketCommitmentRequest{
+		DestChain:   destChain,
+		SourceChain: sourceChain,
+		Sequence:    sequence,
+	}
+	conn, err := c.GenConn()
+	if err != nil {
+		return nil, types.Wrap(err)
+	}
+	// todo ? return Commitment?
+	return packet.NewQueryClient(conn).PacketCommitment(
+		context.Background(),
+		req,
+	)
+}
+
+func (c Client) PacketCommitments(destChain string, sourceChain string, Pagination *query.PageRequest) (*packet.QueryPacketCommitmentsResponse, error) {
+	req := &packet.QueryPacketCommitmentsRequest{
+		DestChain:   destChain,
+		SourceChain: sourceChain,
+		Pagination:  Pagination,
+	}
+	conn, err := c.GenConn()
+	if err != nil {
+		return nil, types.Wrap(err)
+	}
+	// todo ? return Commitments?
+	return packet.NewQueryClient(conn).PacketCommitments(
+		context.Background(),
+		req,
+	)
+}
+
+func (c Client) PacketReceipt(destChain string, sourceChain string, sequence uint64) (*packet.QueryPacketReceiptResponse, error) {
+	req := &packet.QueryPacketReceiptRequest{
+		DestChain:   destChain,
+		SourceChain: sourceChain,
+		Sequence:    sequence,
+	}
+	conn, err := c.GenConn()
+	if err != nil {
+		return nil, types.Wrap(err)
+	}
+	// todo ? return Received?
+	return packet.NewQueryClient(conn).PacketReceipt(
+		context.Background(),
+		req,
+	)
+}
+func (c Client) PacketAcknowledgement(destChain string, sourceChain string, sequence uint64) (*packet.QueryPacketAcknowledgementResponse, error) {
+	req := &packet.QueryPacketAcknowledgementRequest{
+		DestChain:   destChain,
+		SourceChain: sourceChain,
+		Sequence:    sequence,
+	}
+	conn, err := c.GenConn()
+	if err != nil {
+		return nil, types.Wrap(err)
+	}
+	// todo ? return Acknowledgement?
+	return packet.NewQueryClient(conn).PacketAcknowledgement(
+		context.Background(),
+		req,
+	)
+}
+func (c Client) PacketAcknowledgements(destChain string, sourceChain string, Pagination *query.PageRequest) (*packet.QueryPacketAcknowledgementsResponse, error) {
+	req := &packet.QueryPacketAcknowledgementsRequest{
+		DestChain:   destChain,
+		SourceChain: sourceChain,
+		Pagination:  Pagination,
+	}
+	conn, err := c.GenConn()
+	if err != nil {
+		return nil, types.Wrap(err)
+	}
+	// todo ? return Acknowledgements?
+	return packet.NewQueryClient(conn).PacketAcknowledgements(
+		context.Background(),
+		req,
+	)
+}
+func (c Client) UnreceivedPackets(destChain string, sourceChain string, packetCommitmentSequences []uint64) (*packet.QueryUnreceivedPacketsResponse, error) {
+	req := &packet.QueryUnreceivedPacketsRequest{
+		DestChain:                 destChain,
+		SourceChain:               sourceChain,
+		PacketCommitmentSequences: packetCommitmentSequences,
+	}
+	conn, err := c.GenConn()
+	if err != nil {
+		return nil, types.Wrap(err)
+	}
+	// todo ? return Sequences?
+	return packet.NewQueryClient(conn).UnreceivedPackets(
+		context.Background(),
+		req,
+	)
+}
+
+func (c Client) UnreceivedAcks(destChain string, sourceChain string, packetAckSequences []uint64) (*packet.QueryUnreceivedAcksResponse, error) {
+	req := &packet.QueryUnreceivedAcksRequest{
+		DestChain:          destChain,
+		SourceChain:        sourceChain,
+		PacketAckSequences: packetAckSequences,
+	}
+	conn, err := c.GenConn()
+	if err != nil {
+		return nil, types.Wrap(err)
+	}
+	// todo ? return Sequences?
+	return packet.NewQueryClient(conn).UnreceivedAcks(
+		context.Background(),
+		req,
+	)
+}
+
+func (c Client) NextSequenceReceive(destChain string, sourceChain string) (*packet.QueryNextSequenceReceiveResponse, error) {
+	req := &packet.QueryNextSequenceReceiveRequest{
+		DestChain:   destChain,
+		SourceChain: sourceChain,
+	}
+	conn, err := c.GenConn()
+	if err != nil {
+		return nil, types.Wrap(err)
+	}
+	// todo ? return NextSequenceReceive?
+	return packet.NewQueryClient(conn).NextSequenceReceive(
+		context.Background(),
+		req,
+	)
 }
