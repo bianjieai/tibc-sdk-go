@@ -5,7 +5,7 @@ package tendermint
 
 import (
 	fmt "fmt"
-	"github.com/bianjieai/tibc-sdk-go/client"
+	client "github.com/bianjieai/tibc-sdk-go/client"
 	commitment "github.com/bianjieai/tibc-sdk-go/commitment"
 	_go "github.com/confio/ics23/go"
 	_ "github.com/gogo/protobuf/gogoproto"
@@ -145,9 +145,9 @@ var xxx_messageInfo_ConsensusState proto.InternalMessageInfo
 // trusted validator set at the TrustedHeight.
 type Header struct {
 	*types.SignedHeader `protobuf:"bytes,1,opt,name=signed_header,json=signedHeader,proto3,embedded=signed_header" json:"signed_header,omitempty"`
-	ValidatorSet      *types.ValidatorSet `protobuf:"bytes,2,opt,name=validator_set,json=validatorSet,proto3" json:"validator_set,omitempty"`
-	TrustedHeight     client.Height       `protobuf:"bytes,3,opt,name=trusted_height,json=trustedHeight,proto3" json:"trusted_height"`
-	TrustedValidators *types.ValidatorSet `protobuf:"bytes,4,opt,name=trusted_validators,json=trustedValidators,proto3" json:"trusted_validators,omitempty"`
+	ValidatorSet        *types.ValidatorSet `protobuf:"bytes,2,opt,name=validator_set,json=validatorSet,proto3" json:"validator_set,omitempty"`
+	TrustedHeight       client.Height       `protobuf:"bytes,3,opt,name=trusted_height,json=trustedHeight,proto3" json:"trusted_height"`
+	TrustedValidators   *types.ValidatorSet `protobuf:"bytes,4,opt,name=trusted_validators,json=trustedValidators,proto3" json:"trusted_validators,omitempty"`
 }
 
 func (m *Header) Reset()         { *m = Header{} }
