@@ -61,13 +61,13 @@ const (
 	keyName2  = "node0"
 	password2 = "12345678"
 	keyStore2 = `-----BEGIN TENDERMINT PRIVATE KEY-----
+salt: 0B1DE57685C51DDF2941372EED672F61
 type: secp256k1
 kdf: bcrypt
-salt: 24115C709F73F06EF2E88D71985C2542
 
-JZ3Hm0AgH0eDeC0xNtJo8j8jNWVbhoeloOcQgQXxvXz5SUxOf33ssRNhPhkZ+WJC
-iVfp89MmeFSpUwnOKSKWlxCLl9pygC1bEDLiPWo=
-=onio
+rhZ5kEUuLwHCIMYP5lBe8uRbfXUrHZZdh/K03hTkK7u11dR+JhHEmRS5z4mRNDKL
+Ei6hmGLroUnxqFp/6/GOCbDdDmy4dyz6SsjL1vE=
+=q49A
 -----END TENDERMINT PRIVATE KEY-----`
 )
 
@@ -104,15 +104,19 @@ func (TokenManager TokenManager) ToMainCoin(coins ...types.Coin) (types.DecCoins
 }
 
 func Test_ClientCreat(t *testing.T) {
-	client := getClient(nodeURI2, grpcAddr2, chainID2, keyName2, password2, keyStore2)
+	clientA := getClient(nodeURI0, grpcAddr0, chainID0, keyName0, password0, keyStore0)
+	clientB := getClient(nodeURI1, grpcAddr1, chainID1, keyName1, password1, keyStore1)
+	//clientC := getClient(nodeURI2, grpcAddr2, chainID2, keyName2, password2, keyStore2)
+
 	//clientB:= getClient(false)
 	//	fmt.Println(client.CoreSdk.GenConn())
-	getConsensusState(client, "testCreateClient", 4)
-	updateclientTest(client, "testCreateClient")
+	//getClientStates(clientB)
+	updateclientTest(clientB,clientA, "testCreateClientA" ,keyName1)
 	//getConsensusState(client,"testCreateClient",5)
 
-	//	getjson(client, 4)
+	//getjson(clientA, 4)
 
+	//getConsensusStates(client)
 	//getClientState(clientA,"testCreateClientB")
 	//getClientState(clientB,"testCreateClientA")
 
@@ -156,7 +160,7 @@ func getClientState(client tibc.Client, clientName string) {
 	//fmt.Println(clientState1.ClientType())
 	fmt.Println(clientState1.String())
 }
-func getconesState(client tibc.Client) {
+func getClientStates(client tibc.Client) {
 	clientState1, err := client.GetClientStates()
 	if err != nil {
 		panic(err)
@@ -185,6 +189,7 @@ func getConsensusStates(client tibc.Client) {
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println("consensusState: ")
 	for _, value := range consensusState1 {
 		if value == nil {
 			break
@@ -214,9 +219,9 @@ func bankTest(client tibc.Client) {
 }
 
 //destClient tibc.Client,
-func updateclientTest(sourceClient tibc.Client, chainName string) {
+func updateclientTest(sourceClient tibc.Client, destClient tibc.Client, chainName,keyname string) {
 	baseTx := types.BaseTx{
-		From:               keyName2,
+		From:               keyname,
 		Gas:                1000000,
 		Memo:               "TEST",
 		Mode:               types.Commit,
@@ -224,19 +229,26 @@ func updateclientTest(sourceClient tibc.Client, chainName string) {
 		SimulateAndExecute: false,
 		GasAdjustment:      1.5,
 	}
+	lightClientState, err := sourceClient.GetClientState(chainName)
+	if err != nil {
+		fmt.Println("UpdateClient fail :", err)
+		return
+	}
+	height := int64(lightClientState.GetLatestHeight().GetRevisionHeight())
 	request := tibctypes.UpdateClientRequest{
 		ChainName: chainName,
-		Header:    CreateHeader(sourceClient, 5),
+		Header:    CreateHeader(destClient, height+1, tibcclient.NewHeight(0, uint64(height)), lightClientState),
 	}
 
 	ress, err := sourceClient.UpdateClient(request, baseTx)
 	if err != nil {
 		fmt.Println("UpdateClient fail :", err)
+		return
 	}
 	fmt.Println(ress)
 }
 
-func CreateHeader(client tibc.Client, height int64) *tendermint.Header {
+func CreateHeader(client tibc.Client, height int64, trustHeight tibcclient.Height, clientState tibctypes.ClientState) *tendermint.Header {
 
 	res, err := client.CoreSdk.QueryBlock(height)
 	if err != nil {
@@ -244,17 +256,17 @@ func CreateHeader(client tibc.Client, height int64) *tendermint.Header {
 	}
 	tmHeader := res.Block.Header
 
-	trustHeight := tibcclient.NewHeight(0, 4)
 	rescommit, err := client.CoreSdk.Commit(context.Background(), &res.BlockResult.Height)
 	commit := rescommit.Commit
 	signedHeader := &tenderminttypes.SignedHeader{
 		Header: tmHeader.ToProto(),
 		Commit: commit.ToProto(),
 	}
-	clientState, err := client.GetClientState("testCreateClient")
-	if err != nil {
-		fmt.Println("GetClientState fail : ", err)
-	}
+	// todo ! change clientStates to sourceClientState.getLightClientState
+	//clientState, err := client.GetClientState("testCreateClient1")
+	//if err != nil {
+	//	fmt.Println("GetClientState fail : ", err)
+	//}
 	// The trusted fields may be nil. They may be filled before relaying messages to a client.
 	// The relayer is responsible for querying client and injecting appropriate trusted fields.
 	return &tendermint.Header{
@@ -263,6 +275,7 @@ func CreateHeader(client tibc.Client, height int64) *tendermint.Header {
 		TrustedHeight:     trustHeight,
 		TrustedValidators: queryValidatorSet(int64(clientState.GetLatestHeight().GetRevisionHeight()), client),
 	}
+
 }
 
 func queryValidatorSet(height int64, client tibc.Client) *tenderminttypes.ValidatorSet {
