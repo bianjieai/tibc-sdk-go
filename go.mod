@@ -7,10 +7,8 @@ require (
 	github.com/gogo/protobuf v1.3.3
 	github.com/golang/protobuf v1.5.2
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
-	github.com/irisnet/core-sdk-go v0.0.0-20210729072452-06544f6270f3
-	github.com/irisnet/irismod-sdk-go/nft v0.0.0-20210810032454-3ae775c15f1e
+	github.com/irisnet/core-sdk-go v0.0.0-20210817104504-bd2c112847e9
 	github.com/magiconair/properties v1.8.5 // indirect
-	github.com/stretchr/testify v1.7.0
 	github.com/tendermint/tendermint v0.34.11
 	google.golang.org/genproto v0.0.0-20210805201207-89edb61ffb67
 	google.golang.org/grpc v1.39.1

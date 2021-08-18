@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/bianjieai/tibc-sdk-go/types"
-	coretypes "github.com/irisnet/core-sdk-go/common/codec/types"
 	sdk "github.com/irisnet/core-sdk-go/types"
 )
 
@@ -44,7 +43,7 @@ func (m *MsgUpdateClient) ValidateBasic() error {
 	if err0 != nil {
 		return errors.New("string could not be parsed as address")
 	}
-	header, err1 := UnpackHeader(m.Header)
+	header, err1 := types.UnpackHeader(m.Header)
 	if err1 != nil {
 		return err1
 	}
@@ -73,20 +72,6 @@ func defaultIdentifierValidator(id string, min, max int) error {
 	return nil
 }
 
-// UnpackHeader unpacks an Any into a Header. It returns an error if the
-// consensus state can't be unpacked into a Header.
-func UnpackHeader(any *coretypes.Any) (types.Header, error) {
-	if any == nil {
-		return nil, errors.New("protobuf Any message cannot be nil")
-	}
-
-	header, ok := any.GetCachedValue().(types.Header)
-	if !ok {
-		return nil, errors.New("cannot unpack Any into Header")
-	}
-	return header, nil
-}
-
 func (m *MsgUpdateClient) GetSignBytes() []byte {
 	return []byte(m.Signer)
 }
@@ -98,3 +83,5 @@ func (m *MsgUpdateClient) GetSigners() []sdk.AccAddress {
 	}
 	return []sdk.AccAddress{accAddr}
 }
+
+
