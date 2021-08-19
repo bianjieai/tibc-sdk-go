@@ -31,6 +31,7 @@ func NewClient(coreClient sdk.Client) Client {
 func (c Client) RegisterInterfaceTypes(registry cryptotypes.InterfaceRegistry) {
 	packet.RegisterInterfaces(registry)
 	tendermint.RegisterInterfaces(registry)
+	tibctypes.RegisterInterfaces(registry)
 }
 
 func (c Client) Name() string {
@@ -301,25 +302,22 @@ func (c Client) UnreceivedAcks(destChain string, sourceChain string, packetAckSe
 		req,
 	)
 }
+func (c Client) RecvPackets(msgs []types.Msg, baseTx types.BaseTx) (types.ResultTx, types.Error) {
+	return c.CoreSdk.BuildAndSend(msgs, baseTx)
+}
 
 // the height is the destChain contains sourcesChainLightClient height ,revisionNumber too
-func (c Client) RecvPacket(pack packet.Packet, height int64, revisionNumber uint64, baseTx types.BaseTx) (types.ResultTx, types.Error) {
+func (c Client) RecvPacket(proof []byte, pack packet.Packet, height int64, revisionNumber uint64, baseTx types.BaseTx) (types.ResultTx, types.Error) {
 	owner, err := c.CoreSdk.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
 		return types.ResultTx{}, types.Wrap(err)
 	}
-	// ProofCommitment and ProofHeight are derived from the packet
-	key := packet.PacketCommitmentKey(pack.GetSourceChain(), pack.GetDestChain(), pack.GetSequence())
-	_, proofBz, proofHeight, err1 := tendermint.QueryTendermintProof(c.CoreSdk, height, key)
-	if err1 != nil {
-		return types.ResultTx{}, types.Wrap(err1)
-	}
 	msg := &packet.MsgRecvPacket{
 		Packet:          pack,
-		ProofCommitment: proofBz,
+		ProofCommitment: proof,
 		ProofHeight: client.Height{
 			RevisionNumber: revisionNumber,
-			RevisionHeight: proofHeight,
+			RevisionHeight: uint64(height),
 		},
 		Signer: owner.String(),
 	}
@@ -358,7 +356,7 @@ func (c Client) CleanPacket(cleanPacket packet.CleanPacket, baseTx types.BaseTx)
 	}
 	msg := &packet.MsgCleanPacket{
 		CleanPacket: cleanPacket,
-		Signer: owner.String(),
+		Signer:      owner.String(),
 	}
 	return c.CoreSdk.BuildAndSend([]types.Msg{msg}, baseTx)
 }

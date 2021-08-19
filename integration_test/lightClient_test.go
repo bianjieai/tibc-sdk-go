@@ -3,14 +3,8 @@ package integration
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
-	"os"
-	"testing"
-	"time"
-
 	tibc "github.com/bianjieai/tibc-sdk-go"
 	tibcclient "github.com/bianjieai/tibc-sdk-go/client"
-	"github.com/bianjieai/tibc-sdk-go/commitment"
 	"github.com/bianjieai/tibc-sdk-go/tendermint"
 	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
 	coresdk "github.com/irisnet/core-sdk-go"
@@ -19,6 +13,7 @@ import (
 	"github.com/irisnet/core-sdk-go/types/store"
 	tenderminttypes "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
+	"testing"
 )
 
 const (
@@ -29,12 +24,12 @@ const (
 	password0 = "12345678"
 	keyStore0 = `-----BEGIN TENDERMINT PRIVATE KEY-----
 kdf: bcrypt
-salt: DCD05F8841AF4F0A08D59A35D7EFF238
+salt: 3DB980370A3F09BCC521E3229352D92C
 type: secp256k1
 
-obHSjFWeGFg4TPDxlFJHCuRHzunAD5JFKF1HYXYxHTtF1yBOHGXdLHbd2iICXyBe
-/ls89K/yjvr978NEsbu3XtnVXbPvFWXincT/SGU=
-=/b4+
+LagmNNaN/OIJ3WXjtvFKzTpNcVH9yus0XevHT0rXYrR9Dcgs0hwdJ1kSpXbnDEzo
+LFgcNRcDkCZE1lMls79vzo+t3BENYO1fwGkGZxc=
+=IL8T
 -----END TENDERMINT PRIVATE KEY-----`
 )
 
@@ -46,12 +41,12 @@ const (
 	password1 = "12345678"
 	keyStore1 = `-----BEGIN TENDERMINT PRIVATE KEY-----
 kdf: bcrypt
-salt: EA4449B35A583926A711BD9929FC43B7
+salt: 068A47B9A4855964113871FD5A33E591
 type: secp256k1
 
-eStBARDqzTxKYeSLLraUzq+uB+nuw0oUkQ6qLlaqnpvylEbh5Q16tJcKto55MW6h
-egjahsaUazc5y5+Ov+sFpSwACevLOU2+dryc6hU=
-=7rap
+LTjWM/eLk2ediKgAqZdU6/lb6te1i1ATJsf5eGyMjZYRybwW3B8yEGKURiCm5SMy
+1oyx2sedk75JJ0rayR6CVMeCv57N/D0H+uRdbqE=
+=T28a
 -----END TENDERMINT PRIVATE KEY-----`
 )
 const (
@@ -107,14 +102,21 @@ func Test_ClientCreat(t *testing.T) {
 	clientA := getClient(nodeURI0, grpcAddr0, chainID0, keyName0, password0, keyStore0)
 	clientB := getClient(nodeURI1, grpcAddr1, chainID1, keyName1, password1, keyStore1)
 	//clientC := getClient(nodeURI2, grpcAddr2, chainID2, keyName2, password2, keyStore2)
-
+	//
+	updateclientTest(clientB, clientA, "testCreateClientA", keyName1)
+	packetRecive(clientA, clientB, keyName1)
+	//tx, err := clientA.CoreSdk.QueryTx("D6C9C31731F54D0D98CF93538678B03F4E0A10F43B23C8B3EA7A5394CEC256A1")
+	//if err != nil {
+	//	fmt.Println(err)
+	//	return
+	//}
+	//fmt.Println(tx)
 	//clientB:= getClient(false)
 	//	fmt.Println(client.CoreSdk.GenConn())
-	//getClientStates(clientB)
-	updateclientTest(clientB,clientA, "testCreateClientA" ,keyName1)
+	//getClientStates(clientA)
 	//getConsensusState(client,"testCreateClient",5)
 
-	//getjson(clientA, 4)
+	//getjson(clientB, 4)
 
 	//getConsensusStates(client)
 	//getClientState(clientA,"testCreateClientB")
@@ -125,6 +127,7 @@ func Test_ClientCreat(t *testing.T) {
 	//getConsensusStates(client)
 
 }
+
 func getClient(nodeURI, grpcAddr, chainID, keyName, password, keyStore string) tibc.Client {
 	feeCoin, err := types.ParseDecCoins("10stake")
 	options := []types.Option{
@@ -219,10 +222,10 @@ func bankTest(client tibc.Client) {
 }
 
 //destClient tibc.Client,
-func updateclientTest(sourceClient tibc.Client, destClient tibc.Client, chainName,keyname string) {
+func updateclientTest(sourceClient tibc.Client, destClient tibc.Client, chainName, keyname string) {
 	baseTx := types.BaseTx{
 		From:               keyname,
-		Gas:                1000000,
+		Gas:                0,
 		Memo:               "TEST",
 		Mode:               types.Commit,
 		Password:           "12345678",
@@ -235,9 +238,11 @@ func updateclientTest(sourceClient tibc.Client, destClient tibc.Client, chainNam
 		return
 	}
 	height := int64(lightClientState.GetLatestHeight().GetRevisionHeight())
+	stat, err := destClient.CoreSdk.Status(context.Background())
+	height1 := stat.SyncInfo.LatestBlockHeight
 	request := tibctypes.UpdateClientRequest{
 		ChainName: chainName,
-		Header:    CreateHeader(destClient, height+1, tibcclient.NewHeight(0, uint64(height)), lightClientState),
+		Header:    CreateHeader(destClient, height1, tibcclient.NewHeight(0, uint64(height)), lightClientState),
 	}
 
 	ress, err := sourceClient.UpdateClient(request, baseTx)
@@ -262,7 +267,6 @@ func CreateHeader(client tibc.Client, height int64, trustHeight tibcclient.Heigh
 		Header: tmHeader.ToProto(),
 		Commit: commit.ToProto(),
 	}
-	// todo ! change clientStates to sourceClientState.getLightClientState
 	//clientState, err := client.GetClientState("testCreateClient1")
 	//if err != nil {
 	//	fmt.Println("GetClientState fail : ", err)
@@ -271,7 +275,7 @@ func CreateHeader(client tibc.Client, height int64, trustHeight tibcclient.Heigh
 	// The relayer is responsible for querying client and injecting appropriate trusted fields.
 	return &tendermint.Header{
 		SignedHeader:      signedHeader,
-		ValidatorSet:      queryValidatorSet(res.Block.Height, client),
+		ValidatorSet:      queryValidatorSet(height, client),
 		TrustedHeight:     trustHeight,
 		TrustedValidators: queryValidatorSet(int64(clientState.GetLatestHeight().GetRevisionHeight()), client),
 	}
@@ -279,7 +283,6 @@ func CreateHeader(client tibc.Client, height int64, trustHeight tibcclient.Heigh
 }
 
 func queryValidatorSet(height int64, client tibc.Client) *tenderminttypes.ValidatorSet {
-
 	validators, err := client.CoreSdk.Validators(context.Background(), &height, nil, nil)
 	if err != nil {
 		fmt.Println("queryValidatorSet fail :", err)
@@ -289,69 +292,4 @@ func queryValidatorSet(height int64, client tibc.Client) *tenderminttypes.Valida
 		fmt.Println("queryValidatorSet fail :", err)
 	}
 	return validatorSet
-}
-
-func queryValidatorSet1(height int64, client tibc.Client) *tmtypes.ValidatorSet {
-	validators, err := client.CoreSdk.Validators(context.Background(), &height, nil, nil)
-	if err != nil {
-		fmt.Println("queryValidatorSet1 fail :", err)
-	}
-	validatorSet := tmtypes.NewValidatorSet(validators.Validators)
-
-	return validatorSet
-}
-
-//Generate a JSON file needed to create the light client
-//Add the following string to the header after the file is generated
-//"@type":"/tibc.lightclients.tendermint.v1.ClientState",
-//"@type":"/tibc.lightclients.tendermint.v1.ConsensusState",
-func getjson(client tibc.Client, height int64) {
-
-	//ClientState
-	var fra = tendermint.Fraction{
-		Numerator:   1,
-		Denominator: 3,
-	}
-	res, err := client.CoreSdk.QueryBlock(height)
-	if err != nil {
-		fmt.Println("QueryBlock fail:  ", err)
-	}
-	tmHeader := res.Block.Header
-	fmt.Println(tmHeader.ChainID)
-	lastHeight := tibcclient.NewHeight(0, 4)
-	var clientstate = &tendermint.ClientState{
-		ChainId:         tmHeader.ChainID,
-		TrustLevel:      fra,
-		TrustingPeriod:  time.Hour * 24 * 7 * 2,
-		UnbondingPeriod: time.Hour * 24 * 7 * 3,
-		MaxClockDrift:   time.Second * 10,
-		LatestHeight:    lastHeight,
-		ProofSpecs:      commitment.GetSDKSpecs(),
-		MerklePrefix:    commitment.MerklePrefix{KeyPrefix: []byte("ibc")},
-		TimeDelay:       0,
-	}
-	//ConsensusState
-	var consensusState = &tendermint.ConsensusState{
-		Timestamp:          time.Date(2021, 8, 6, 0, 0, 0, 0, time.UTC),
-		Root:               commitment.NewMerkleRoot([]byte("app_hash")),
-		NextValidatorsHash: queryValidatorSet1(res.Block.Height, client).Hash(),
-	}
-
-	b0, err := client.Marshaler.MarshalJSON(clientstate)
-	if err != nil {
-		panic(err)
-	}
-	err = ioutil.WriteFile("client_state.json", b0, os.ModeAppend)
-	if err != nil {
-		return
-	}
-	b1, err := client.Marshaler.MarshalJSON(consensusState)
-	if err != nil {
-		panic(err)
-	}
-	err = ioutil.WriteFile("consensus_state.json", b1, os.ModeAppend)
-	if err != nil {
-		return
-	}
-
 }
