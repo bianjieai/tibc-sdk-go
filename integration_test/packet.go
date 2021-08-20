@@ -170,8 +170,6 @@ func sendAck(sourceClient tibc.Client, destClient tibc.Client, keyname string) {
 	clients, err := destClient.GetClientState("testCreateClientC")
 	height := clients.GetLatestHeight()
 	packet1, ack, err := getpacketAndAck(tx)
-	ack1, _ := sourceClient.PacketAcknowledgement("testCreateClientC", "testCreateClientA", 1)
-	fmt.Println("ack1: ", ack1.String())
 	baseTx := types.BaseTx{
 		From:               keyname,
 		Gas:                0,
@@ -204,7 +202,6 @@ func packetRecive(sourceClient tibc.Client, destClient tibc.Client, keyname stri
 		return
 	}
 	res := queryCommitment(sourceClient)
-	fmt.Println("proof : ", res.Proof)
 	clients, err := destClient.GetClientState("testCreateClientA")
 	height := clients.GetLatestHeight()
 	packet1, err := getpacket(tx)
@@ -217,11 +214,9 @@ func packetRecive(sourceClient tibc.Client, destClient tibc.Client, keyname stri
 		SimulateAndExecute: false,
 		GasAdjustment:      1.5,
 	}
-
 	// ProofCommitment and ProofHeight are derived from the packet
 	key := packet.PacketCommitmentKey(packet1.GetSourceChain(), packet1.GetDestChain(), packet1.GetSequence())
 	_, proofBz, _, err1 := tendermint.QueryTendermintProof(sourceClient.CoreSdk, int64(height.GetRevisionHeight()), key)
-
 	if err1 != nil {
 		fmt.Println(err1)
 		return
@@ -268,7 +263,6 @@ func recvCleanPacket(sourceClient tibc.Client, destClient tibc.Client, keyname s
 	if err != nil {
 		fmt.Println("getcleanpack error")
 	}
-	fmt.Println(cleanpack.String())
 	baseTx := types.BaseTx{
 		From:               keyname,
 		Gas:                0,
@@ -281,7 +275,6 @@ func recvCleanPacket(sourceClient tibc.Client, destClient tibc.Client, keyname s
 	// ProofCommitment and ProofHeight are derived from the packet
 	key := packet.CleanPacketCommitmentKey(cleanpack.GetSourceChain(), cleanpack.GetDestChain())
 	_, proofBz, _, err1 := tendermint.QueryTendermintProof(sourceClient.CoreSdk, int64(height.GetRevisionHeight()), key)
-
 	if err1 != nil {
 		fmt.Println(err1)
 		return
