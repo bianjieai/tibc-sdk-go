@@ -40,7 +40,7 @@ func getjson(client tibc.Client, height int64) {
 		MaxClockDrift:   time.Second * 10,
 		LatestHeight:    lastHeight,
 		ProofSpecs:      commitment.GetSDKSpecs(),
-		MerklePrefix:    commitment.MerklePrefix{KeyPrefix: []byte("ibc")},
+		MerklePrefix:    commitment.MerklePrefix{KeyPrefix: []byte("tibc")},
 		TimeDelay:       0,
 	}
 	//ConsensusState
