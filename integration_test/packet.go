@@ -1,7 +1,6 @@
 package integration
 
 import (
-	"encoding/hex"
 	"fmt"
 	"strconv"
 
@@ -184,16 +183,8 @@ func sendAck(sourceClient tibc.Client, destClient tibc.Client, keyname string) {
 	}
 	// ProofCommitment and ProofHeight are derived from the packet
 	key := packet.PacketAcknowledgementKey(packet1.GetSourceChain(), packet1.GetDestChain(), packet1.GetSequence())
-	v1, proofBz, height1, err1 := tendermint.QueryTendermintProof(sourceClient.CoreSdk, int64(height.GetRevisionHeight()), key)
+	_, proofBz, _, err1 := tendermint.QueryTendermintProof(sourceClient.CoreSdk, int64(height.GetRevisionHeight()), key)
 
-	fmt.Println("ack", hex.EncodeToString(ack))
-	fmt.Println("v1", hex.EncodeToString(v1))
-
-	fmt.Println("height1", height1)
-	fmt.Println("height", height.GetRevisionHeight())
-
-	fmt.Println("proof ::!!!", proofBz)
-	fmt.Println("height::!! ", height.GetRevisionHeight())
 	if err1 != nil {
 		fmt.Println(err1)
 		return
@@ -229,16 +220,8 @@ func packetRecive(sourceClient tibc.Client, destClient tibc.Client, keyname stri
 
 	// ProofCommitment and ProofHeight are derived from the packet
 	key := packet.PacketCommitmentKey(packet1.GetSourceChain(), packet1.GetDestChain(), packet1.GetSequence())
-	v1, proofBz, height1, err1 := tendermint.QueryTendermintProof(sourceClient.CoreSdk, int64(height.GetRevisionHeight()), key)
+	_, proofBz, _, err1 := tendermint.QueryTendermintProof(sourceClient.CoreSdk, int64(height.GetRevisionHeight()), key)
 
-	fmt.Println("res", hex.EncodeToString(res.Commitment))
-	fmt.Println("v1", hex.EncodeToString(v1))
-
-	fmt.Println("height1", height1)
-	fmt.Println("height", height.GetRevisionHeight())
-
-	fmt.Println("proof ::!!!", proofBz)
-	fmt.Println("height::!! ", height.GetRevisionHeight())
 	if err1 != nil {
 		fmt.Println(err1)
 		return
@@ -297,15 +280,8 @@ func recvCleanPacket(sourceClient tibc.Client, destClient tibc.Client, keyname s
 	}
 	// ProofCommitment and ProofHeight are derived from the packet
 	key := packet.CleanPacketCommitmentKey(cleanpack.GetSourceChain(), cleanpack.GetDestChain())
-	v1, proofBz, height1, err1 := tendermint.QueryTendermintProof(sourceClient.CoreSdk, int64(height.GetRevisionHeight()), key)
+	_, proofBz, _, err1 := tendermint.QueryTendermintProof(sourceClient.CoreSdk, int64(height.GetRevisionHeight()), key)
 
-	fmt.Println("v1", hex.EncodeToString(v1))
-
-	fmt.Println("height1", height1)
-	fmt.Println("height", height.GetRevisionHeight())
-
-	fmt.Println("proof ::!!!", proofBz)
-	fmt.Println("height::!! ", height.GetRevisionHeight())
 	if err1 != nil {
 		fmt.Println(err1)
 		return
