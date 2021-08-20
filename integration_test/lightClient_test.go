@@ -3,6 +3,8 @@ package integration
 import (
 	"context"
 	"fmt"
+	"testing"
+
 	tibc "github.com/bianjieai/tibc-sdk-go"
 	tibcclient "github.com/bianjieai/tibc-sdk-go/client"
 	"github.com/bianjieai/tibc-sdk-go/tendermint"
@@ -13,7 +15,6 @@ import (
 	"github.com/irisnet/core-sdk-go/types/store"
 	tenderminttypes "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
-	"testing"
 )
 
 const (
@@ -24,12 +25,12 @@ const (
 	password0 = "12345678"
 	keyStore0 = `-----BEGIN TENDERMINT PRIVATE KEY-----
 kdf: bcrypt
-salt: 3DB980370A3F09BCC521E3229352D92C
+salt: BF187E62613F8D34FF7549789E87036A
 type: secp256k1
 
-LagmNNaN/OIJ3WXjtvFKzTpNcVH9yus0XevHT0rXYrR9Dcgs0hwdJ1kSpXbnDEzo
-LFgcNRcDkCZE1lMls79vzo+t3BENYO1fwGkGZxc=
-=IL8T
+4oc/pkmJPmGDeZDWSn1LzXmpJiu+v7H7y9/UDaK+fKgtAQomv2qvmQcxilOQ/CKa
+Ns0BdL8xdk/xpyvogNUzZF0XjEAv20tDfMEXMCY=
+=qzos
 -----END TENDERMINT PRIVATE KEY-----`
 )
 
@@ -41,28 +42,28 @@ const (
 	password1 = "12345678"
 	keyStore1 = `-----BEGIN TENDERMINT PRIVATE KEY-----
 kdf: bcrypt
-salt: 068A47B9A4855964113871FD5A33E591
+salt: 37FD6B82A99A2EEFBA40FC605F2D6534
 type: secp256k1
 
-LTjWM/eLk2ediKgAqZdU6/lb6te1i1ATJsf5eGyMjZYRybwW3B8yEGKURiCm5SMy
-1oyx2sedk75JJ0rayR6CVMeCv57N/D0H+uRdbqE=
-=T28a
+nYAzOuDvkGOGBubbcgaGqI7UocdriBsJrNT2dZVhP7sREJfpitYfKKw8I3/kQRCR
+nF/1KvFwVImZB27DyB4kuqjelSqaPf5+OkOzYDY=
+=6Cb0
 -----END TENDERMINT PRIVATE KEY-----`
 )
 const (
 	nodeURI2  = "tcp://192.168.232.140:26657"
 	grpcAddr2 = "192.168.232.140:9090"
-	chainID2  = "test"
-	keyName2  = "node0"
+	chainID2  = "testC"
+	keyName2  = "chainCNode0"
 	password2 = "12345678"
 	keyStore2 = `-----BEGIN TENDERMINT PRIVATE KEY-----
-salt: 0B1DE57685C51DDF2941372EED672F61
-type: secp256k1
 kdf: bcrypt
+salt: E4EEDC973716AD876C3A8910C1D65B20
+type: secp256k1
 
-rhZ5kEUuLwHCIMYP5lBe8uRbfXUrHZZdh/K03hTkK7u11dR+JhHEmRS5z4mRNDKL
-Ei6hmGLroUnxqFp/6/GOCbDdDmy4dyz6SsjL1vE=
-=q49A
+dIdbtintSXxdAXwHT4OeZPlsrNbBgBOtwj1xq57dG9nZCk77XX7Rm20PwPy33kOj
+JtDIisQLCWKU6ZtGQO5COOWDT65qaOOcpbfShzU=
+=/3oB
 -----END TENDERMINT PRIVATE KEY-----`
 )
 
@@ -100,32 +101,19 @@ func (TokenManager TokenManager) ToMainCoin(coins ...types.Coin) (types.DecCoins
 
 func Test_ClientCreat(t *testing.T) {
 	clientA := getClient(nodeURI0, grpcAddr0, chainID0, keyName0, password0, keyStore0)
-	clientB := getClient(nodeURI1, grpcAddr1, chainID1, keyName1, password1, keyStore1)
-	//clientC := getClient(nodeURI2, grpcAddr2, chainID2, keyName2, password2, keyStore2)
-	//
-	updateclientTest(clientB, clientA, "testCreateClientA", keyName1)
-	packetRecive(clientA, clientB, keyName1)
-	//tx, err := clientA.CoreSdk.QueryTx("D6C9C31731F54D0D98CF93538678B03F4E0A10F43B23C8B3EA7A5394CEC256A1")
-	//if err != nil {
-	//	fmt.Println(err)
-	//	return
-	//}
-	//fmt.Println(tx)
-	//clientB:= getClient(false)
-	//	fmt.Println(client.CoreSdk.GenConn())
-	//getClientStates(clientA)
-	//getConsensusState(client,"testCreateClient",5)
-
-	//getjson(clientB, 4)
-
-	//getConsensusStates(client)
-	//getClientState(clientA,"testCreateClientB")
-	//getClientState(clientB,"testCreateClientA")
-
-	//getconesState(client)
-	//getConsensusState(client)
-	//getConsensusStates(client)
-
+	//clientB := getClient(nodeURI1, grpcAddr1, chainID1, keyName1, password1, keyStore1)
+	clientC := getClient(nodeURI2, grpcAddr2, chainID2, keyName2, password2, keyStore2)
+	//getjson(clientC, 4)
+	//packetReceipt(clientA)
+	//queryack(clientC)
+	updateclientTest(clientA, clientC, "testCreateClientC", keyName0)
+	sendAck(clientC, clientA, keyName0)
+	//bankTest(clientC)
+	//queryUnreceivedPacketsAndAcks(clientA)
+	//queryUnreceivedPacketsAndAcks(clientC)
+	//packetReceipt(clientC)
+	//updateclientTest(clientC, clientA, "testCreateClientA", keyName2)
+	//packetRecive(clientA, clientC, keyName2)
 }
 
 func getClient(nodeURI, grpcAddr, chainID, keyName, password, keyStore string) tibc.Client {
@@ -203,9 +191,9 @@ func getConsensusStates(client tibc.Client) {
 
 func bankTest(client tibc.Client) {
 	coins, _ := types.ParseDecCoins("100stake")
-	to := "iaa12a08j6scetjx8kesf6t0guh2jhe0a5c5zhae2m"
+	to := "iaa1mlj9nsud3d9yaccgymf4ay9yckr268qttggnrj"
 	baseTx := types.BaseTx{
-		From:               keyName0,
+		From:               keyName2,
 		Gas:                0,
 		Memo:               "TEST",
 		Mode:               types.Commit,

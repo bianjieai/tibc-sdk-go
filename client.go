@@ -197,7 +197,6 @@ func (c Client) PacketCommitment(destChain string, sourceChain string, sequence 
 	if err != nil {
 		return nil, types.Wrap(err)
 	}
-	// todo ? return Commitment?
 	return packet.NewQueryClient(conn).PacketCommitment(
 		context.Background(),
 		req,
@@ -214,7 +213,6 @@ func (c Client) PacketCommitments(destChain string, sourceChain string, Paginati
 	if err != nil {
 		return nil, types.Wrap(err)
 	}
-	// todo ? return Commitments?
 	return packet.NewQueryClient(conn).PacketCommitments(
 		context.Background(),
 		req,
@@ -231,7 +229,6 @@ func (c Client) PacketReceipt(destChain string, sourceChain string, sequence uin
 	if err != nil {
 		return nil, types.Wrap(err)
 	}
-	// todo ? return Received?
 	return packet.NewQueryClient(conn).PacketReceipt(
 		context.Background(),
 		req,
@@ -247,7 +244,6 @@ func (c Client) PacketAcknowledgement(destChain string, sourceChain string, sequ
 	if err != nil {
 		return nil, types.Wrap(err)
 	}
-	// todo ? return Acknowledgement?
 	return packet.NewQueryClient(conn).PacketAcknowledgement(
 		context.Background(),
 		req,
@@ -263,7 +259,6 @@ func (c Client) PacketAcknowledgements(destChain string, sourceChain string, Pag
 	if err != nil {
 		return nil, types.Wrap(err)
 	}
-	// todo ? return Acknowledgements?
 	return packet.NewQueryClient(conn).PacketAcknowledgements(
 		context.Background(),
 		req,
@@ -279,7 +274,6 @@ func (c Client) UnreceivedPackets(destChain string, sourceChain string, packetCo
 	if err != nil {
 		return nil, types.Wrap(err)
 	}
-	// todo ? return Sequences?
 	return packet.NewQueryClient(conn).UnreceivedPackets(
 		context.Background(),
 		req,
@@ -296,7 +290,6 @@ func (c Client) UnreceivedAcks(destChain string, sourceChain string, packetAckSe
 	if err != nil {
 		return nil, types.Wrap(err)
 	}
-	// todo ? return Sequences?
 	return packet.NewQueryClient(conn).UnreceivedAcks(
 		context.Background(),
 		req,
@@ -306,7 +299,6 @@ func (c Client) RecvPackets(msgs []types.Msg, baseTx types.BaseTx) (types.Result
 	return c.CoreSdk.BuildAndSend(msgs, baseTx)
 }
 
-// the height is the destChain contains sourcesChainLightClient height ,revisionNumber too
 func (c Client) RecvPacket(proof []byte, pack packet.Packet, height int64, revisionNumber uint64, baseTx types.BaseTx) (types.ResultTx, types.Error) {
 	owner, err := c.CoreSdk.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
@@ -324,31 +316,24 @@ func (c Client) RecvPacket(proof []byte, pack packet.Packet, height int64, revis
 	return c.CoreSdk.BuildAndSend([]types.Msg{msg}, baseTx)
 }
 
-func (c Client) Acknowledgement(pack packet.Packet, height int64, revisionNumber uint64, baseTx types.BaseTx) (types.ResultTx, types.Error) {
+func (c Client) Acknowledgement(proof []byte, acknowledgement []byte, pack packet.Packet, height int64, revisionNumber uint64, baseTx types.BaseTx) (types.ResultTx, types.Error) {
 	owner, err := c.CoreSdk.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
 		return types.ResultTx{}, types.Wrap(err)
 	}
-	// ProofCommitment and ProofHeight are derived from the packet
-	key := packet.PacketCommitmentKey(pack.GetSourceChain(), pack.GetDestChain(), pack.GetSequence())
-	value, proofBz, proofHeight, err1 := tendermint.QueryTendermintProof(c.CoreSdk, height, key)
-	if err1 != nil {
-		return types.ResultTx{}, types.Wrap(err1)
-	}
-
 	msg := &packet.MsgAcknowledgement{
 		Packet:          pack,
-		Acknowledgement: value,
-		ProofAcked:      proofBz,
+		Acknowledgement: acknowledgement,
+		ProofAcked:      proof,
 		ProofHeight: client.Height{
 			RevisionNumber: revisionNumber,
-			RevisionHeight: proofHeight,
+			RevisionHeight: uint64(height),
 		},
 		Signer: owner.String(),
 	}
 	return c.CoreSdk.BuildAndSend([]types.Msg{msg}, baseTx)
-
 }
+
 func (c Client) CleanPacket(cleanPacket packet.CleanPacket, baseTx types.BaseTx) (types.ResultTx, types.Error) {
 	owner, err := c.CoreSdk.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
@@ -361,23 +346,18 @@ func (c Client) CleanPacket(cleanPacket packet.CleanPacket, baseTx types.BaseTx)
 	return c.CoreSdk.BuildAndSend([]types.Msg{msg}, baseTx)
 }
 
-func (c Client) RecvCleanPacket(pack packet.Packet, height int64, revisionNumber uint64, baseTx types.BaseTx) (types.ResultTx, types.Error) {
+func (c Client) RecvCleanPacket(proof []byte, pack packet.CleanPacket, height int64, revisionNumber uint64, baseTx types.BaseTx) (types.ResultTx, types.Error) {
 	owner, err := c.CoreSdk.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
 		return types.ResultTx{}, types.Wrap(err)
 	}
-	// ProofCommitment and ProofHeight are derived from the packet
-	key := packet.PacketCommitmentKey(pack.GetSourceChain(), pack.GetDestChain(), pack.GetSequence())
-	_, proofBz, proofHeight, err1 := tendermint.QueryTendermintProof(c.CoreSdk, height, key)
-	if err1 != nil {
-		return types.ResultTx{}, types.Wrap(err1)
-	}
-	msg := &packet.MsgRecvPacket{
-		Packet:          pack,
-		ProofCommitment: proofBz,
+
+	msg := &packet.MsgRecvCleanPacket{
+		CleanPacket:     pack,
+		ProofCommitment: proof,
 		ProofHeight: client.Height{
 			RevisionNumber: revisionNumber,
-			RevisionHeight: proofHeight,
+			RevisionHeight: uint64(height),
 		},
 		Signer: owner.String(),
 	}
