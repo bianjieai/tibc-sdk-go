@@ -102,13 +102,14 @@ func (TokenManager TokenManager) ToMainCoin(coins ...types.Coin) (types.DecCoins
 func Test_ClientCreat(t *testing.T) {
 	clientA := getClient(nodeURI0, grpcAddr0, chainID0, keyName0, password0, keyStore0)
 	//clientB := getClient(nodeURI1, grpcAddr1, chainID1, keyName1, password1, keyStore1)
-	//clientC := getClient(nodeURI2, grpcAddr2, chainID2, keyName2, password2, keyStore2)
+	clientC := getClient(nodeURI2, grpcAddr2, chainID2, keyName2, password2, keyStore2)
 	//getjson(clientC, 4)
 	//packetReceipt(clientA)
 	//queryack(clientC)
-	cleanPacket(clientA, keyName0)
-	//updateclientTest(clientA, clientC, "testCreateClientC", keyName0)
-	//updateclientTest(clientC, clientA, "testCreateClientA", keyName2)
+	//cleanPacket(clientA, keyName0)
+	updateclientTest(clientC, clientA, "testCreateClientA", keyName2)
+	updateclientTest(clientA, clientC, "testCreateClientC", keyName0)
+	recvCleanPacket(clientA, clientC, keyName2)
 
 	//sendAck(clientC, clientA, keyName0)
 	//bankTest(clientC)

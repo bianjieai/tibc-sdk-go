@@ -162,41 +162,6 @@ func getpacketAndAck(tx types.ResultQueryTx) (packet.Packet, []byte, error) {
 		Data:             []byte(data),
 	}, []byte(ack), nil
 }
-func getcleanpack(tx types.ResultQueryTx) (packet.CleanPacket, error) {
-	sequence, err := tx.Result.Events.GetValue("？？？", "packet_sequence")
-	if err != nil {
-		fmt.Println(err)
-		return packet.CleanPacket{}, nil
-	}
-	sourceChain, err := tx.Result.Events.GetValue("？？？", "packet_sequence")
-	if err != nil {
-		fmt.Println(err)
-		return packet.CleanPacket{}, nil
-	}
-	destinationChain, err := tx.Result.Events.GetValue("？？？", "packet_sequence")
-	if err != nil {
-		fmt.Println(err)
-		return packet.CleanPacket{}, nil
-	}
-	relayChain, err := tx.Result.Events.GetValue("？？？", "packet_sequence")
-	if err != nil {
-		fmt.Println(err)
-		return packet.CleanPacket{}, nil
-	}
-	num, err := strconv.Atoi(sequence)
-	if err != nil {
-		fmt.Println(err)
-		return packet.CleanPacket{}, nil
-	}
-	//fmt.Println(num)
-	return packet.CleanPacket{
-		uint64(num),
-		sourceChain,
-		destinationChain,
-		relayChain,
-	}, nil
-
-}
 func sendAck(sourceClient tibc.Client, destClient tibc.Client, keyname string) {
 	tx, err := sourceClient.CoreSdk.QueryTx("CC57E9C818F1C164CF377674642A4CA67B4F49CDD3648F1C764E7729419C8E82")
 	if err != nil {
@@ -309,7 +274,7 @@ func cleanPacket(sourceClient tibc.Client, keyname string) {
 
 }
 func recvCleanPacket(sourceClient tibc.Client, destClient tibc.Client, keyname string) {
-	tx, err := sourceClient.CoreSdk.QueryTx("源链上 cleanPacket 交易 hash")
+	tx, err := sourceClient.CoreSdk.QueryTx("ECDD26B95971537A089E9DB1E02EB30B5E433281063504614D12A093686E6B4A")
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -317,7 +282,10 @@ func recvCleanPacket(sourceClient tibc.Client, destClient tibc.Client, keyname s
 	clients, err := destClient.GetClientState("testCreateClientA")
 	height := clients.GetLatestHeight()
 	cleanpack, err := getcleanpack(tx)
-
+	if err != nil {
+		fmt.Println("getcleanpack error")
+	}
+	fmt.Println(cleanpack.String())
 	baseTx := types.BaseTx{
 		From:               keyname,
 		Gas:                0,
@@ -348,5 +316,40 @@ func recvCleanPacket(sourceClient tibc.Client, destClient tibc.Client, keyname s
 		return
 	}
 	fmt.Println(ress)
+}
+
+func getcleanpack(tx types.ResultQueryTx) (packet.CleanPacket, error) {
+	sequence, err := tx.Result.Events.GetValue("send_clean_packet", "packet_sequence")
+	if err != nil {
+		fmt.Println(err)
+		return packet.CleanPacket{}, nil
+	}
+	sourceChain, err := tx.Result.Events.GetValue("send_clean_packet", "packet_src_chain")
+	if err != nil {
+		fmt.Println(err)
+		return packet.CleanPacket{}, nil
+	}
+	destinationChain, err := tx.Result.Events.GetValue("send_clean_packet", "packet_dst_port")
+	if err != nil {
+		fmt.Println(err)
+		return packet.CleanPacket{}, nil
+	}
+	relayChain, err := tx.Result.Events.GetValue("send_clean_packet", "packet_relay_channel")
+	if err != nil {
+		fmt.Println(err)
+		return packet.CleanPacket{}, nil
+	}
+	num, err := strconv.Atoi(sequence)
+	if err != nil {
+		fmt.Println(err)
+		return packet.CleanPacket{}, nil
+	}
+	//fmt.Println(num)
+	return packet.CleanPacket{
+		Sequence:         uint64(num),
+		SourceChain:      sourceChain,
+		DestinationChain: destinationChain,
+		RelayChain:       relayChain,
+	}, nil
 
 }
