@@ -162,6 +162,41 @@ func getpacketAndAck(tx types.ResultQueryTx) (packet.Packet, []byte, error) {
 		Data:             []byte(data),
 	}, []byte(ack), nil
 }
+func getcleanpack(tx types.ResultQueryTx) (packet.CleanPacket, error) {
+	sequence, err := tx.Result.Events.GetValue("？？？", "packet_sequence")
+	if err != nil {
+		fmt.Println(err)
+		return packet.CleanPacket{}, nil
+	}
+	sourceChain, err := tx.Result.Events.GetValue("？？？", "packet_sequence")
+	if err != nil {
+		fmt.Println(err)
+		return packet.CleanPacket{}, nil
+	}
+	destinationChain, err := tx.Result.Events.GetValue("？？？", "packet_sequence")
+	if err != nil {
+		fmt.Println(err)
+		return packet.CleanPacket{}, nil
+	}
+	relayChain, err := tx.Result.Events.GetValue("？？？", "packet_sequence")
+	if err != nil {
+		fmt.Println(err)
+		return packet.CleanPacket{}, nil
+	}
+	num, err := strconv.Atoi(sequence)
+	if err != nil {
+		fmt.Println(err)
+		return packet.CleanPacket{}, nil
+	}
+	//fmt.Println(num)
+	return packet.CleanPacket{
+		uint64(num),
+		sourceChain,
+		destinationChain,
+		relayChain,
+	}, nil
+
+}
 func sendAck(sourceClient tibc.Client, destClient tibc.Client, keyname string) {
 	tx, err := sourceClient.CoreSdk.QueryTx("CC57E9C818F1C164CF377674642A4CA67B4F49CDD3648F1C764E7729419C8E82")
 	if err != nil {
@@ -207,7 +242,7 @@ func sendAck(sourceClient tibc.Client, destClient tibc.Client, keyname string) {
 }
 
 func packetRecive(sourceClient tibc.Client, destClient tibc.Client, keyname string) {
-	tx, err := sourceClient.CoreSdk.QueryTx("627D11B87B651F16EBF95C485E561E89A0E299AA4A773E95AB29CEE23F6F08A1")
+	tx, err := sourceClient.CoreSdk.QueryTx("原链上 packet 生成的交易 hash")
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -249,4 +284,69 @@ func packetRecive(sourceClient tibc.Client, destClient tibc.Client, keyname stri
 		return
 	}
 	fmt.Println(ress)
+}
+func cleanPacket(sourceClient tibc.Client, keyname string) {
+	cleanpacket := packet.CleanPacket{
+		Sequence:         1,
+		SourceChain:      "testCreateClientA",
+		DestinationChain: "testCreateClientC",
+		RelayChain:       "",
+	}
+	baseTx := types.BaseTx{
+		From:               keyname,
+		Gas:                0,
+		Memo:               "TEST",
+		Mode:               types.Commit,
+		Password:           "12345678",
+		SimulateAndExecute: false,
+		GasAdjustment:      1.5,
+	}
+	res, err := sourceClient.CleanPacket(cleanpacket, baseTx)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(res)
+
+}
+func recvCleanPacket(sourceClient tibc.Client, destClient tibc.Client, keyname string) {
+	tx, err := sourceClient.CoreSdk.QueryTx("源链上 cleanPacket 交易 hash")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	clients, err := destClient.GetClientState("testCreateClientA")
+	height := clients.GetLatestHeight()
+	cleanpack, err := getcleanpack(tx)
+
+	baseTx := types.BaseTx{
+		From:               keyname,
+		Gas:                0,
+		Memo:               "TEST",
+		Mode:               types.Commit,
+		Password:           "12345678",
+		SimulateAndExecute: false,
+		GasAdjustment:      1.5,
+	}
+	// ProofCommitment and ProofHeight are derived from the packet
+	key := packet.CleanPacketCommitmentKey(cleanpack.GetSourceChain(), cleanpack.GetDestChain())
+	v1, proofBz, height1, err1 := tendermint.QueryTendermintProof(sourceClient.CoreSdk, int64(height.GetRevisionHeight()), key)
+
+	fmt.Println("v1", hex.EncodeToString(v1))
+
+	fmt.Println("height1", height1)
+	fmt.Println("height", height.GetRevisionHeight())
+
+	fmt.Println("proof ::!!!", proofBz)
+	fmt.Println("height::!! ", height.GetRevisionHeight())
+	if err1 != nil {
+		fmt.Println(err1)
+		return
+	}
+	ress, err := destClient.RecvCleanPacket(proofBz, cleanpack, int64(height.GetRevisionHeight()), 0, baseTx)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(ress)
+
 }

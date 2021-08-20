@@ -51,3 +51,14 @@ func PacketAcknowledgementKey(sourceChain, destinationChain string, sequence uin
 func PacketAcknowledgementPrefixPath(sourceChain, destinationChain string) string {
 	return fmt.Sprintf("%s/%s/%s", KeyPacketAckPrefix, packetPath(sourceChain, destinationChain), KeySequencePrefix)
 }
+
+// CleanPacketCommitmentKey returns the store key of under which a clean packet commitment
+// is stored
+func CleanPacketCommitmentKey(sourceChain, destinationChain string) []byte {
+	return []byte(CleanPacketCommitmentPath(sourceChain, destinationChain))
+}
+
+// CleanPacketCommitmentPrefixPath defines the prefix for commitments to packet data fields store path.
+func CleanPacketCommitmentPath(sourceChain, destinationChain string) string {
+	return fmt.Sprintf("%s/%s", KeyCleanPacketCommitmentPrefix, packetPath(sourceChain, destinationChain))
+}
