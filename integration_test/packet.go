@@ -196,7 +196,7 @@ func sendAck(sourceClient tibc.Client, destClient tibc.Client, keyname string) {
 }
 
 func packetRecive(sourceClient tibc.Client, destClient tibc.Client, keyname string) {
-	tx, err := sourceClient.CoreSdk.QueryTx("原链上 packet 生成的交易 hash")
+	tx, err := sourceClient.CoreSdk.QueryTx("ECDD26B95971537A089E9DB1E02EB30B5E433281063504614D12A093686E6B4A")
 	if err != nil {
 		fmt.Println(err)
 		return

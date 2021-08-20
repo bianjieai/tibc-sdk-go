@@ -103,21 +103,11 @@ func Test_ClientCreat(t *testing.T) {
 	clientA := getClient(nodeURI0, grpcAddr0, chainID0, keyName0, password0, keyStore0)
 	//clientB := getClient(nodeURI1, grpcAddr1, chainID1, keyName1, password1, keyStore1)
 	clientC := getClient(nodeURI2, grpcAddr2, chainID2, keyName2, password2, keyStore2)
-	//getjson(clientC, 4)
-	//packetReceipt(clientA)
-	//queryack(clientC)
-	//cleanPacket(clientA, keyName0)
+	updateclientTest(clientA, clientC, "testCreateClientB", keyName0)
 	updateclientTest(clientC, clientA, "testCreateClientA", keyName2)
 	updateclientTest(clientA, clientC, "testCreateClientC", keyName0)
 	recvCleanPacket(clientA, clientC, keyName2)
 
-	//sendAck(clientC, clientA, keyName0)
-	//bankTest(clientC)
-	//queryUnreceivedPacketsAndAcks(clientA)
-	//queryUnreceivedPacketsAndAcks(clientC)
-	//packetReceipt(clientC)
-	//updateclientTest(clientC, clientA, "testCreateClientA", keyName2)
-	//packetRecive(clientA, clientC, keyName2)
 }
 
 func getClient(nodeURI, grpcAddr, chainID, keyName, password, keyStore string) tibc.Client {
