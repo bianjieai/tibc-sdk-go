@@ -1,8 +1,6 @@
-package tendermint
+package nft_transfer
 
 import (
-	"github.com/bianjieai/tibc-sdk-go/client"
-	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
 	"github.com/irisnet/core-sdk-go/common/codec"
 	"github.com/irisnet/core-sdk-go/common/codec/types"
 	cryptocodec "github.com/irisnet/core-sdk-go/common/crypto/codec"
@@ -20,17 +18,8 @@ func init() {
 }
 
 func RegisterInterfaces(registry types.InterfaceRegistry) {
-
-	registry.RegisterImplementations(
-		(*tibctypes.ClientState)(nil),
-		&ClientState{},
-	)
-	registry.RegisterImplementations(
-		(*tibctypes.ConsensusState)(nil),
-		&ConsensusState{},
-	)
 	registry.RegisterImplementations(
 		(*sdk.Msg)(nil),
-		&client.MsgUpdateClient{},
+		&MsgNftTransfer{},
 	)
 }

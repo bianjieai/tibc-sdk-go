@@ -12,15 +12,5 @@ var (
 )
 
 func RegisterInterfaces(registry types.InterfaceRegistry) {
-	//registry.RegisterInterface(
-	//	"ibc.core.client.v1.ClientState",
-	//	(*ClientState)(nil),
-	//)
-	//registry.RegisterInterface(
-	//	"ibc.core.client.v1.ConsensusState",
-	//	(*ConsensusState)(nil),
-	//)
-
-	// for query NFT types of transactions
 	registry.RegisterImplementations((*sdk.Msg)(nil), &MsgNftTransfer{})
 }

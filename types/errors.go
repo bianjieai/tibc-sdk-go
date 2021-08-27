@@ -28,6 +28,7 @@ var (
 	ErrSendAckPacket                = Register(RootCodeSpace, 21, "failed to send ack packet")
 	ErrSendCleanPacket              = Register(RootCodeSpace, 22, "failed to send clean packet")
 	ErrRecvCleanPacket              = Register(RootCodeSpace, 23, "failed to recv clean packet")
+	ErrNftTransfer                  = Register(RootCodeSpace, 24, "failed to send nft transfer  ")
 )
 
 var usedCodes = map[string]*Error{}
