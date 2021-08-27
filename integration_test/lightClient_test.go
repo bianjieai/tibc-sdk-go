@@ -110,28 +110,9 @@ func Test_ClientCreat(t *testing.T) {
 		fmt.Println(err.Codespace(), err.Code(), err.Error())
 		return
 	}
-	//clientC := getClient(nodeURI2, grpcAddr2, chainID2, keyName2, password2, keyStore2)
 
 	updateclientTest(clientA, clientB, "testCreateClientB", "testCreateClientB")
-	//get creat client need json
-	//getjson(clientA, 4)
 
-	//test get client and consensusstate
-	//clientt, err := clientA.GetClientState("testCreateClientB")
-	//if err != nil {
-	//	fmt.Println(err)
-	//	return
-	//}
-	//con, err := clientA.GetConsensusState("testCreateClientB", clientt.GetLatestHeight().GetRevisionHeight())
-	//fmt.Println(clientt.String())
-	//fmt.Println(con.String())
-	//updateclientTest(clientA, clientB, "testCreateClientB", keyName0)
-	//updateclientTest(clientB, clientA, "testCreateClientA", keyName1)
-
-	//packetRecive(clientA, clientB, keyName1, "testCreateClientC")
-	//sendAck(clientB, clientA, keyName0, "testCreateClientB")
-	//sendAck(clientA, clientC, keyName2, "testCreateClientA")
-	//recvCleanPacket(clientA, clientC, keyName2)
 }
 
 func getClient(nodeURI, grpcAddr, chainID, keyName, password, keyStore string) (tibc.Client, *tibctypes.Error) {
@@ -155,7 +136,6 @@ func getClient(nodeURI, grpcAddr, chainID, keyName, password, keyStore string) (
 
 		return tibc.Client{}, tibctypes.New("importkey", 0, "error import key")
 	}
-	//fmt.Println(client.CoreSdk.Key.Show(keyName, "12345678"))
 	return client, nil
 
 }
@@ -165,9 +145,6 @@ func getClientState(client tibc.Client, clientName string) {
 	if err != nil {
 		panic(err)
 	}
-	//fmt.Println(clientState1.Validate())
-	//fmt.Println(clientState1.GetLatestHeight().String())
-	//fmt.Println(clientState1.ClientType())
 	fmt.Println(clientState1.String())
 }
 func getClientStates(client tibc.Client) {
@@ -188,9 +165,6 @@ func getConsensusState(client tibc.Client, clientName string, height uint64) {
 	if err != nil {
 		panic(err)
 	}
-	//fmt.Println(consensusState1.GetRoot().GetHash())
-	//fmt.Println(consensusState1.ClientType())
-	//fmt.Println(consensusState1.GetTimestamp())
 	fmt.Println(consensusState1.String())
 
 }
@@ -221,7 +195,6 @@ func bankTest(client tibc.Client) {
 		GasAdjustment:      1.5,
 	}
 	res, err := client.CoreSdk.Bank.Send(to, coins, baseTx)
-	//res, err :=client.QueryToken("upoint")
 	if err != nil {
 		fmt.Println("Bank Send fail : ", err)
 	}
@@ -278,12 +251,6 @@ func CreateHeader(client tibc.Client, height int64, trustHeight tibcclient.Heigh
 		Header: tmHeader.ToProto(),
 		Commit: commit.ToProto(),
 	}
-	//clientState, err := client.GetClientState("testCreateClient1")
-	//if err != nil {
-	//	fmt.Println("GetClientState fail : ", err)
-	//}
-	// The trusted fields may be nil. They may be filled before relaying messages to a client.
-	// The relayer is responsible for querying client and injecting appropriate trusted fields.
 	return &tendermint.Header{
 		SignedHeader:      signedHeader,
 		ValidatorSet:      queryValidatorSet(height, client),
