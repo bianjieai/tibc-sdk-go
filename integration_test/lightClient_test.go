@@ -25,12 +25,12 @@ const (
 	password0 = "12345678"
 	keyStore0 = `-----BEGIN TENDERMINT PRIVATE KEY-----
 kdf: bcrypt
-salt: BF187E62613F8D34FF7549789E87036A
+salt: D145AFB29D332974833DB1AD5912D3D1
 type: secp256k1
 
-4oc/pkmJPmGDeZDWSn1LzXmpJiu+v7H7y9/UDaK+fKgtAQomv2qvmQcxilOQ/CKa
-Ns0BdL8xdk/xpyvogNUzZF0XjEAv20tDfMEXMCY=
-=qzos
+KCtCKbIq/EVtNGdZSoa4cwkLfMk9Z7tMQ6P1DrSe0KqkmMutzA2hh3WbtrSdJsgD
+KZM9JwHI4ROYyXGsTD5s8oL+kjErG7zcpjhbX7g=
+=K8L7
 -----END TENDERMINT PRIVATE KEY-----`
 )
 
@@ -41,13 +41,13 @@ const (
 	keyName1  = "chainBNode0"
 	password1 = "12345678"
 	keyStore1 = `-----BEGIN TENDERMINT PRIVATE KEY-----
-kdf: bcrypt
-salt: 37FD6B82A99A2EEFBA40FC605F2D6534
+salt: 2F4473E8BA06E6142C476C009FF72423
 type: secp256k1
+kdf: bcrypt
 
-nYAzOuDvkGOGBubbcgaGqI7UocdriBsJrNT2dZVhP7sREJfpitYfKKw8I3/kQRCR
-nF/1KvFwVImZB27DyB4kuqjelSqaPf5+OkOzYDY=
-=6Cb0
+T+2XCYRqkZBSFXGTToW5ryGFizmWGirJMPy6Dcc7KB6GOM6aJrASCa8s4Zi34zDp
+EYxOsdB0TPJtfpFWRDaMZIxwiyXowgCLD09FOps=
+=OZa+
 -----END TENDERMINT PRIVATE KEY-----`
 )
 const (
@@ -58,12 +58,12 @@ const (
 	password2 = "12345678"
 	keyStore2 = `-----BEGIN TENDERMINT PRIVATE KEY-----
 kdf: bcrypt
-salt: E4EEDC973716AD876C3A8910C1D65B20
+salt: 25CBC5EF99C0D6831E61F084317B6CAB
 type: secp256k1
 
-dIdbtintSXxdAXwHT4OeZPlsrNbBgBOtwj1xq57dG9nZCk77XX7Rm20PwPy33kOj
-JtDIisQLCWKU6ZtGQO5COOWDT65qaOOcpbfShzU=
-=/3oB
+VJU1N6MjKQTeOnuQnWEv3He5Ygv1JahIUvDO1pTK7QB7199+ftNMS2eOTV7iNJGb
+Un9YJEuYJHpP/1cz2VuOuMEgqXFYe/Z6uWfGuMs=
+=UJ7v
 -----END TENDERMINT PRIVATE KEY-----`
 )
 
@@ -100,17 +100,41 @@ func (TokenManager TokenManager) ToMainCoin(coins ...types.Coin) (types.DecCoins
 }
 
 func Test_ClientCreat(t *testing.T) {
-	clientA := getClient(nodeURI0, grpcAddr0, chainID0, keyName0, password0, keyStore0)
-	//clientB := getClient(nodeURI1, grpcAddr1, chainID1, keyName1, password1, keyStore1)
-	clientC := getClient(nodeURI2, grpcAddr2, chainID2, keyName2, password2, keyStore2)
-	updateclientTest(clientA, clientC, "testCreateClientB", keyName0)
-	updateclientTest(clientC, clientA, "testCreateClientA", keyName2)
-	updateclientTest(clientA, clientC, "testCreateClientC", keyName0)
-	recvCleanPacket(clientA, clientC, keyName2)
+	clientA, err := getClient(nodeURI0, grpcAddr0, chainID0, keyName0, password0, keyStore0)
+	if err != nil {
+		fmt.Println(err.Codespace(), err.Code(), err.Error())
+		return
+	}
+	clientB, err := getClient(nodeURI1, grpcAddr1, chainID1, keyName1, password1, keyStore1)
+	if err != nil {
+		fmt.Println(err.Codespace(), err.Code(), err.Error())
+		return
+	}
+	//clientC := getClient(nodeURI2, grpcAddr2, chainID2, keyName2, password2, keyStore2)
 
+	updateclientTest(clientA, clientB, "testCreateClientB", "testCreateClientB")
+	//get creat client need json
+	//getjson(clientA, 4)
+
+	//test get client and consensusstate
+	//clientt, err := clientA.GetClientState("testCreateClientB")
+	//if err != nil {
+	//	fmt.Println(err)
+	//	return
+	//}
+	//con, err := clientA.GetConsensusState("testCreateClientB", clientt.GetLatestHeight().GetRevisionHeight())
+	//fmt.Println(clientt.String())
+	//fmt.Println(con.String())
+	//updateclientTest(clientA, clientB, "testCreateClientB", keyName0)
+	//updateclientTest(clientB, clientA, "testCreateClientA", keyName1)
+
+	//packetRecive(clientA, clientB, keyName1, "testCreateClientC")
+	//sendAck(clientB, clientA, keyName0, "testCreateClientB")
+	//sendAck(clientA, clientC, keyName2, "testCreateClientA")
+	//recvCleanPacket(clientA, clientC, keyName2)
 }
 
-func getClient(nodeURI, grpcAddr, chainID, keyName, password, keyStore string) tibc.Client {
+func getClient(nodeURI, grpcAddr, chainID, keyName, password, keyStore string) (tibc.Client, *tibctypes.Error) {
 	feeCoin, err := types.ParseDecCoins("10stake")
 	options := []types.Option{
 		types.KeyDAOOption(store.NewMemory(nil)),
@@ -122,16 +146,17 @@ func getClient(nodeURI, grpcAddr, chainID, keyName, password, keyStore string) t
 	}
 	cfg, err := types.NewClientConfig(nodeURI, grpcAddr, chainID, options...)
 	if err != nil {
-		panic(err)
+		return tibc.Client{}, tibctypes.New("config", 0, "error get config")
 	}
 	coreSdk := coresdk.NewClient(cfg)
 	client := tibc.NewClient(coreSdk)
 	_, err = client.CoreSdk.Key.Import(keyName, password, keyStore)
 	if err != nil {
-		panic(err)
+
+		return tibc.Client{}, tibctypes.New("importkey", 0, "error import key")
 	}
-	fmt.Println(client.CoreSdk.Key.Show(keyName, "12345678"))
-	return client
+	//fmt.Println(client.CoreSdk.Key.Show(keyName, "12345678"))
+	return client, nil
 
 }
 
@@ -220,7 +245,11 @@ func updateclientTest(sourceClient tibc.Client, destClient tibc.Client, chainNam
 		return
 	}
 	height := int64(lightClientState.GetLatestHeight().GetRevisionHeight())
-	stat, err := destClient.CoreSdk.Status(context.Background())
+	stat, err1 := destClient.CoreSdk.Status(context.Background())
+	if err1 != nil {
+		fmt.Println("get Status fail :", err1)
+		return
+	}
 	height1 := stat.SyncInfo.LatestBlockHeight
 	request := tibctypes.UpdateClientRequest{
 		ChainName: chainName,

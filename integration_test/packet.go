@@ -10,20 +10,13 @@ import (
 	"github.com/irisnet/core-sdk-go/types"
 )
 
-func queryCommitment(client tibc.Client) *packet.QueryPacketCommitmentResponse {
-	res, err := client.PacketCommitment("testCreateClientC", "testCreateClientA", 1)
+func queryCommitment(client tibc.Client, destName string, sourceName string) *packet.QueryPacketCommitmentResponse {
+	res, err := client.PacketCommitment(destName, sourceName, 1)
 	if err != nil {
 		fmt.Println(err)
 		return nil
 	}
 	fmt.Println(res.String())
-
-	res1, err := client.PacketCommitments("testCreateClientC", "testCreateClientA", nil)
-	if err != nil {
-		fmt.Println(err)
-		return nil
-	}
-	fmt.Println("commitments:  ", res1.Commitments)
 	return res
 }
 
@@ -161,13 +154,14 @@ func getpacketAndAck(tx types.ResultQueryTx) (packet.Packet, []byte, error) {
 		Data:             []byte(data),
 	}, []byte(ack), nil
 }
-func sendAck(sourceClient tibc.Client, destClient tibc.Client, keyname string) {
-	tx, err := sourceClient.CoreSdk.QueryTx("CC57E9C818F1C164CF377674642A4CA67B4F49CDD3648F1C764E7729419C8E82")
+func sendAck(sourceClient tibc.Client, destClient tibc.Client, keyname string, sourceName string) {
+	tx, err := sourceClient.CoreSdk.QueryTx("CBF30E33349768EC9D32AD8C79D8C0B13E671F242E7E7A5783AB62DEF51CB478")
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	clients, err := destClient.GetClientState("testCreateClientC")
+
+	clients, err := destClient.GetClientState(sourceName)
 	height := clients.GetLatestHeight()
 	packet1, ack, err := getpacketAndAck(tx)
 	baseTx := types.BaseTx{
@@ -195,16 +189,17 @@ func sendAck(sourceClient tibc.Client, destClient tibc.Client, keyname string) {
 	fmt.Println(ress)
 }
 
-func packetRecive(sourceClient tibc.Client, destClient tibc.Client, keyname string) {
-	tx, err := sourceClient.CoreSdk.QueryTx("ECDD26B95971537A089E9DB1E02EB30B5E433281063504614D12A093686E6B4A")
+func packetRecive(sourceClient tibc.Client, destClient tibc.Client, keyname string, sourceName string) {
+	tx, err := sourceClient.CoreSdk.QueryTx("2E1687540F3E3A7BCDE793154B8FEB0F5CA7111074D21EE6FB8609BFEDB8E0B5")
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	res := queryCommitment(sourceClient)
+	res := queryCommitment(sourceClient, "testCreateClientB", sourceName)
 	clients, err := destClient.GetClientState("testCreateClientA")
 	height := clients.GetLatestHeight()
 	packet1, err := getpacket(tx)
+	fmt.Println(packet1.String())
 	baseTx := types.BaseTx{
 		From:               keyname,
 		Gas:                0,
@@ -246,7 +241,8 @@ func cleanPacket(sourceClient tibc.Client, keyname string) {
 	}
 	res, err := sourceClient.CleanPacket(cleanpacket, baseTx)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(err.Error(), err.Codespace())
+		return
 	}
 	fmt.Println(res)
 
