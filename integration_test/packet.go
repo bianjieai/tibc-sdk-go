@@ -230,6 +230,7 @@ func sendAck(sourceClient Client, destClient Client, keyname string, txhash stri
 	}
 	// ProofCommitment and ProofHeight are derived from the packet
 	key := packet.PacketAcknowledgementKey(packet1.GetSourceChain(), packet1.GetDestChain(), packet1.GetSequence())
+
 	_, proofBz, _, err1 := others.QueryTendermintProof(destClient.Tendermint, int64(height.GetRevisionHeight()), key)
 
 	if err1 != nil {
@@ -246,13 +247,17 @@ func sendAck(sourceClient Client, destClient Client, keyname string, txhash stri
 	return ress.Hash, nil
 }
 
+
 func packetRecive(sourceClient Client, destClient Client, keyname string, txHash string) (string, tibctypes.IError) {
 	tx, err := sourceClient.QueryTx(txHash)
+
 	if err != nil {
 		fmt.Println(err)
 		return "", tibctypes.New("querytx", 0, "error query tx")
 	}
+
 	clients, err := destClient.Tendermint.GetClientState(sourceClient.ChainName)
+
 	height := clients.GetLatestHeight()
 	packet1, err := getpacket(tx)
 	//fmt.Println(packet1.String())
@@ -267,6 +272,7 @@ func packetRecive(sourceClient Client, destClient Client, keyname string, txHash
 	}
 	// ProofCommitment and ProofHeight are derived from the packet
 	key := packet.PacketCommitmentKey(packet1.GetSourceChain(), packet1.GetDestChain(), packet1.GetSequence())
+
 	_, proofBz, _, err1 := others.QueryTendermintProof(sourceClient.Tendermint, int64(height.GetRevisionHeight()), key)
 	if err1 != nil {
 		return "", tibctypes.New("queryProof", 0, "error query proof")
@@ -326,6 +332,7 @@ func recvCleanPacket(sourceClient, destClient Client, keyname string, txhash str
 	// ProofCommitment and ProofHeight are derived from the packet
 	key := packet.CleanPacketCommitmentKey(cleanpack.GetSourceChain(), cleanpack.GetDestChain())
 	_, proofBz, _, err1 := others.QueryTendermintProof(sourceClient.Tendermint, int64(height.GetRevisionHeight()), key)
+
 	if err1 != nil {
 		fmt.Println(err1)
 		return "", tibctypes.New("queryProof", 0, "error query proof")
@@ -365,6 +372,100 @@ func getcleanpack(tx types.ResultQueryTx) (packet.CleanPacket, error) {
 		fmt.Println(err)
 		return packet.CleanPacket{}, nil
 	}
+	return packet.CleanPacket{
+		Sequence:         uint64(num),
+		SourceChain:      sourceChain,
+		DestinationChain: destinationChain,
+		RelayChain:       relayChain,
+	}, nil
+
+}
+func cleanPacket(sourceClient tibc.Client, keyname string) {
+	cleanpacket := packet.CleanPacket{
+		Sequence:         1,
+		SourceChain:      "testCreateClientA",
+		DestinationChain: "testCreateClientC",
+		RelayChain:       "",
+	}
+	baseTx := types.BaseTx{
+		From:               keyname,
+		Gas:                0,
+		Memo:               "TEST",
+		Mode:               types.Commit,
+		Password:           "12345678",
+		SimulateAndExecute: false,
+		GasAdjustment:      1.5,
+	}
+	res, err := sourceClient.CleanPacket(cleanpacket, baseTx)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(res)
+
+}
+func recvCleanPacket(sourceClient tibc.Client, destClient tibc.Client, keyname string) {
+	tx, err := sourceClient.CoreSdk.QueryTx("ECDD26B95971537A089E9DB1E02EB30B5E433281063504614D12A093686E6B4A")
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	clients, err := destClient.GetClientState("testCreateClientA")
+	height := clients.GetLatestHeight()
+	cleanpack, err := getcleanpack(tx)
+	if err != nil {
+		fmt.Println("getcleanpack error")
+	}
+	baseTx := types.BaseTx{
+		From:               keyname,
+		Gas:                0,
+		Memo:               "TEST",
+		Mode:               types.Commit,
+		Password:           "12345678",
+		SimulateAndExecute: false,
+		GasAdjustment:      1.5,
+	}
+	// ProofCommitment and ProofHeight are derived from the packet
+	key := packet.CleanPacketCommitmentKey(cleanpack.GetSourceChain(), cleanpack.GetDestChain())
+	_, proofBz, _, err1 := tendermint.QueryTendermintProof(sourceClient.CoreSdk, int64(height.GetRevisionHeight()), key)
+	if err1 != nil {
+		fmt.Println(err1)
+		return
+	}
+	ress, err := destClient.RecvCleanPacket(proofBz, cleanpack, int64(height.GetRevisionHeight()), 0, baseTx)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(ress)
+}
+
+func getcleanpack(tx types.ResultQueryTx) (packet.CleanPacket, error) {
+	sequence, err := tx.Result.Events.GetValue("send_clean_packet", "packet_sequence")
+	if err != nil {
+		fmt.Println(err)
+		return packet.CleanPacket{}, nil
+	}
+	sourceChain, err := tx.Result.Events.GetValue("send_clean_packet", "packet_src_chain")
+	if err != nil {
+		fmt.Println(err)
+		return packet.CleanPacket{}, nil
+	}
+	destinationChain, err := tx.Result.Events.GetValue("send_clean_packet", "packet_dst_port")
+	if err != nil {
+		fmt.Println(err)
+		return packet.CleanPacket{}, nil
+	}
+	relayChain, err := tx.Result.Events.GetValue("send_clean_packet", "packet_relay_channel")
+	if err != nil {
+		fmt.Println(err)
+		return packet.CleanPacket{}, nil
+	}
+	num, err := strconv.Atoi(sequence)
+	if err != nil {
+		fmt.Println(err)
+		return packet.CleanPacket{}, nil
+	}
+	//fmt.Println(num)
 	return packet.CleanPacket{
 		Sequence:         uint64(num),
 		SourceChain:      sourceChain,
