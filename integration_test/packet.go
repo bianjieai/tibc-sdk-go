@@ -4,15 +4,11 @@ import (
 	"fmt"
 	"strconv"
 
-	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
-
-	"github.com/irisnet/irismod-sdk-go/nft"
-
-	"github.com/bianjieai/tibc-sdk-go/others"
-
 	tibc "github.com/bianjieai/tibc-sdk-go"
 	"github.com/bianjieai/tibc-sdk-go/packet"
+	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
 	"github.com/irisnet/core-sdk-go/types"
+	"github.com/irisnet/irismod-sdk-go/nft"
 )
 
 func nftTransfer(sourceClient Client, keyname, class, id, receiver, destChainName, realayChainName string) (string, tibctypes.IError) {
@@ -230,7 +226,7 @@ func sendAck(sourceClient Client, destClient Client, keyname string, txhash stri
 	}
 	// ProofCommitment and ProofHeight are derived from the packet
 	key := packet.PacketAcknowledgementKey(packet1.GetSourceChain(), packet1.GetDestChain(), packet1.GetSequence())
-	_, proofBz, _, err1 := others.QueryTendermintProof(destClient.Tendermint, int64(height.GetRevisionHeight()), key)
+	_, proofBz, _, err1 := destClient.Tendermint.QueryTendermintProof(int64(height.GetRevisionHeight()), key)
 
 	if err1 != nil {
 		fmt.Println(err1)
@@ -267,7 +263,7 @@ func packetRecive(sourceClient Client, destClient Client, keyname string, txHash
 	}
 	// ProofCommitment and ProofHeight are derived from the packet
 	key := packet.PacketCommitmentKey(packet1.GetSourceChain(), packet1.GetDestChain(), packet1.GetSequence())
-	_, proofBz, _, err1 := others.QueryTendermintProof(sourceClient.Tendermint, int64(height.GetRevisionHeight()), key)
+	_, proofBz, _, err1 := sourceClient.Tendermint.QueryTendermintProof(int64(height.GetRevisionHeight()), key)
 	if err1 != nil {
 		return "", tibctypes.New("queryProof", 0, "error query proof")
 	}
@@ -325,7 +321,7 @@ func recvCleanPacket(sourceClient, destClient Client, keyname string, txhash str
 	}
 	// ProofCommitment and ProofHeight are derived from the packet
 	key := packet.CleanPacketCommitmentKey(cleanpack.GetSourceChain(), cleanpack.GetDestChain())
-	_, proofBz, _, err1 := others.QueryTendermintProof(sourceClient.Tendermint, int64(height.GetRevisionHeight()), key)
+	_, proofBz, _, err1 := sourceClient.Tendermint.QueryTendermintProof(int64(height.GetRevisionHeight()), key)
 	if err1 != nil {
 		fmt.Println(err1)
 		return "", tibctypes.New("queryProof", 0, "error query proof")

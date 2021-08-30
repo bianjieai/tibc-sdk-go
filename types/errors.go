@@ -1,6 +1,10 @@
 package types
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/pkg/errors"
+)
 
 const RootCodeSpace = "tibc-sdk-go"
 
@@ -29,6 +33,11 @@ var (
 	ErrSendCleanPacket              = Register(RootCodeSpace, 22, "failed to send clean packet")
 	ErrRecvCleanPacket              = Register(RootCodeSpace, 23, "failed to recv clean packet")
 	ErrNftTransfer                  = Register(RootCodeSpace, 24, "failed to send nft transfer  ")
+	ErrInvalidConsensus             = Register(RootCodeSpace, 25, "invalid consensus state")
+	ErrInvalidHeader                = Register(RootCodeSpace, 26, "invalid consensus state")
+	ErrInvalidHeight                = Register(RootCodeSpace, 27, "invalid height")
+	ErrInvalidAddress               = Register(RootCodeSpace, 28, "invalid address")
+	ErrInvalidID                    = Register(RootCodeSpace, 29, "invalid identifier")
 )
 
 var usedCodes = map[string]*Error{}
@@ -134,4 +143,46 @@ type causer interface {
 
 type unpacker interface {
 	Unpack() []error
+}
+
+func Wrap(err error, description string) error {
+	if err == nil {
+		return nil
+	}
+
+	// If this error does not carry the stacktrace information yet, attach
+	// one. This should be done only once per error at the lowest frame
+	// possible (most inner wrap).
+	if stackTrace(err) == nil {
+		err = errors.WithStack(err)
+	}
+
+	return &WrappedError{
+		parent: err,
+		msg:    description,
+	}
+}
+
+// stackTrace returns the first found stack trace frame carried by given error
+// or any wrapped error. It returns nil if no stack trace is found.
+func stackTrace(err error) errors.StackTrace {
+	type stackTracer interface {
+		StackTrace() errors.StackTrace
+	}
+
+	for {
+		if st, ok := err.(stackTracer); ok {
+			return st.StackTrace()
+		}
+
+		if c, ok := err.(causer); ok {
+			err = c.Cause()
+		} else {
+			return nil
+		}
+	}
+}
+func Wrapf(err error, format string, args ...interface{}) error {
+	desc := fmt.Sprintf(format, args...)
+	return Wrap(err, desc)
 }

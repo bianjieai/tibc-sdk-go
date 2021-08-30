@@ -1,7 +1,6 @@
 package client
 
 import (
-	"errors"
 	"regexp"
 	"sort"
 	"strings"
@@ -41,7 +40,7 @@ func (m *MsgUpdateClient) Type() string {
 func (m *MsgUpdateClient) ValidateBasic() error {
 	_, err0 := sdk.AccAddressFromBech32(m.Signer)
 	if err0 != nil {
-		return errors.New("string could not be parsed as address")
+		return types.Wrapf(types.ErrInvalidAddress, "string could not be parsed as address: %v", err0)
 	}
 	header, err1 := types.UnpackHeader(m.Header)
 	if err1 != nil {
@@ -50,24 +49,31 @@ func (m *MsgUpdateClient) ValidateBasic() error {
 	if err2 := header.ValidateBasic(); err2 != nil {
 		return err2
 	}
-	return defaultIdentifierValidator(m.ChainName, 9, 64)
+	return ClientIdentifierValidator(m.ChainName)
+}
+func ClientIdentifierValidator(id string) error {
+	return defaultIdentifierValidator(id, 9, 64)
 }
 
 func defaultIdentifierValidator(id string, min, max int) error {
 	if strings.TrimSpace(id) == "" {
-		return errors.New("identifier cannot be blank")
+		return types.Wrap(types.ErrInvalidID, "identifier cannot be blank")
 	}
 	// valid id MUST NOT contain "/" separator
 	if strings.Contains(id, "/") {
-		return errors.New("identifier  cannot contain separator '/'")
+		return types.Wrapf(types.ErrInvalidID, "identifier %s cannot contain separator '/'", id)
 	}
 	// valid id must fit the length requirements
 	if len(id) < min || len(id) > max {
-		return errors.New("identifier" + id + "  has invalid length:" + string(len(id)) + ", must be between " + string(min) + "- " + string(max) + " characters")
+		return types.Wrapf(types.ErrInvalidID, "identifier %s has invalid length: %d, must be between %d-%d characters", id, len(id), min, max)
 	}
 	// valid id must contain only lower alphabetic characters
 	if !IsValidID(id) {
-		return errors.New("identifier " + id + " must contain only alphanumeric or the following characters: '.', '_', '+', '-', '#', '[', ']', '<', '>'")
+		return types.Wrapf(
+			types.ErrInvalidID,
+			"identifier %s must contain only alphanumeric or the following characters: '.', '_', '+', '-', '#', '[', ']', '<', '>'",
+			id,
+		)
 	}
 	return nil
 }
@@ -83,5 +89,3 @@ func (m *MsgUpdateClient) GetSigners() []sdk.AccAddress {
 	}
 	return []sdk.AccAddress{accAddr}
 }
-
-
