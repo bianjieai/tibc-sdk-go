@@ -244,11 +244,14 @@ func sendAck(sourceClient Client, destClient Client, keyname string, txhash stri
 
 func packetRecive(sourceClient Client, destClient Client, keyname string, txHash string) (string, tibctypes.IError) {
 	tx, err := sourceClient.QueryTx(txHash)
+
 	if err != nil {
 		fmt.Println(err)
 		return "", tibctypes.New("querytx", 0, "error query tx")
 	}
+
 	clients, err := destClient.Tendermint.GetClientState(sourceClient.ChainName)
+
 	height := clients.GetLatestHeight()
 	packet1, err := getpacket(tx)
 	//fmt.Println(packet1.String())
@@ -264,6 +267,7 @@ func packetRecive(sourceClient Client, destClient Client, keyname string, txHash
 	// ProofCommitment and ProofHeight are derived from the packet
 	key := packet.PacketCommitmentKey(packet1.GetSourceChain(), packet1.GetDestChain(), packet1.GetSequence())
 	_, proofBz, _, err1 := sourceClient.Tendermint.QueryTendermintProof(int64(height.GetRevisionHeight()), key)
+
 	if err1 != nil {
 		return "", tibctypes.New("queryProof", 0, "error query proof")
 	}
