@@ -81,6 +81,8 @@ func Test_integrationClient(t *testing.T) {
 		return
 	}
 	updateAllCient(clientA, clientB, clientC)
+	//cleanPacket(clientA,clientB,1,keyName0)
+	//recvCleanPacket(clientA,clientB,keyName1,"1ECE3853D71E786198CD7241BF774E281BFB5DD1CDF3704FE8C4ADCB0E400DC6")
 
 	//single jump A to B then return
 	nftAtoB(clientA, clientB, clientC)
