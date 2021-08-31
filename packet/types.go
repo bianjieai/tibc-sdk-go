@@ -1,15 +1,12 @@
 package packet
 
 import (
-	"errors"
-
+	"github.com/bianjieai/tibc-sdk-go/commitment"
 	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
 	sdk "github.com/irisnet/core-sdk-go/types"
 )
 
 var _ sdk.Msg = &MsgRecvPacket{}
-
-
 
 // Route implements sdk.Msg
 func (msg MsgRecvPacket) Route() string {
@@ -34,14 +31,14 @@ func (msg MsgRecvPacket) GetSigners() []sdk.AccAddress {
 // ValidateBasic implements sdk.Msg
 func (msg MsgRecvPacket) ValidateBasic() error {
 	if len(msg.ProofCommitment) == 0 {
-		return errors.New("cannot submit an empty proof")
+		return tibctypes.Wrap(commitment.ErrInvalidProof, "cannot submit an empty proof")
 	}
 	if msg.ProofHeight.IsZero() {
-		return errors.New("proof height must be non-zero")
+		return tibctypes.Wrap(tibctypes.ErrInvalidHeight, "proof height must be non-zero")
 	}
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
-		return errors.New("InvalidAddress : string could not be parsed as address ")
+		return tibctypes.Wrapf(tibctypes.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 	return msg.Packet.ValidateBasic()
 }
@@ -91,16 +88,15 @@ func (p Packet) GetData() []byte { return p.Data }
 // ValidateBasic implements PacketI interface
 func (p Packet) ValidateBasic() error {
 	if p.Sequence == 0 {
-		return errors.New("invalid packet: packet sequence cannot be 0")
+		return tibctypes.Wrap(ErrInvalidPacket, "packet sequence cannot be 0")
 	}
 	if len(p.Data) == 0 {
-		return errors.New("InvalidPacket:packet data bytes cannot be empty")
+		return tibctypes.Wrap(ErrInvalidPacket, "packet data bytes cannot be empty")
 	}
 	return nil
 }
 
 var _ sdk.Msg = &MsgAcknowledgement{}
-
 
 // Route implements sdk.Msg
 func (msg MsgAcknowledgement) Route() string {
@@ -110,17 +106,17 @@ func (msg MsgAcknowledgement) Route() string {
 // ValidateBasic implements sdk.Msg
 func (msg MsgAcknowledgement) ValidateBasic() error {
 	if len(msg.ProofAcked) == 0 {
-		return errors.New("InvalidProof cannot submit an empty proof")
+		return tibctypes.Wrap(commitment.ErrInvalidProof, "cannot submit an empty proof")
 	}
 	if msg.ProofHeight.IsZero() {
-		return errors.New("InvalidHeight proof height must be non-zero")
+		return tibctypes.Wrap(tibctypes.ErrInvalidHeight, "proof height must be non-zero")
 	}
 	if len(msg.Acknowledgement) == 0 {
-		return errors.New("InvalidAcknowledgement ack bytes cannot be empty")
+		return tibctypes.Wrap(ErrInvalidAcknowledgement, "ack bytes cannot be empty")
 	}
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
-		return errors.New("InvalidAddress string could not be parsed as address")
+		return tibctypes.Wrapf(tibctypes.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 	return msg.Packet.ValidateBasic()
 }
@@ -147,7 +143,6 @@ func (msg MsgAcknowledgement) Type() string {
 
 var _ sdk.Msg = &MsgCleanPacket{}
 
-
 // Route implements sdk.Msg
 func (msg MsgCleanPacket) Route() string {
 	return "tibc"
@@ -157,7 +152,7 @@ func (msg MsgCleanPacket) Route() string {
 func (msg MsgCleanPacket) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
-		return errors.New("InvalidAddress string could not be parsed as address")
+		return tibctypes.Wrapf(tibctypes.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 	return msg.CleanPacket.ValidateBasic()
 }
@@ -193,7 +188,7 @@ func (msg MsgRecvCleanPacket) Route() string {
 func (msg MsgRecvCleanPacket) ValidateBasic() error {
 	_, err := sdk.AccAddressFromBech32(msg.Signer)
 	if err != nil {
-		return errors.New("InvalidAddress string could not be parsed as address")
+		return tibctypes.Wrapf(tibctypes.ErrInvalidAddress, "string could not be parsed as address: %v", err)
 	}
 	return msg.CleanPacket.ValidateBasic()
 }
@@ -203,7 +198,6 @@ func (msg MsgRecvCleanPacket) ValidateBasic() error {
 func (msg MsgRecvCleanPacket) GetSignBytes() []byte {
 	panic("IBC messages do not support amino")
 }
-
 
 // GetSigners implements sdk.Msg
 func (msg MsgRecvCleanPacket) GetSigners() []sdk.AccAddress {
@@ -236,7 +230,7 @@ func (p CleanPacket) GetRelayChain() string { return p.RelayChain }
 // ValidateBasic implements PacketI interface
 func (p CleanPacket) ValidateBasic() error {
 	if p.Sequence == 0 {
-		return errors.New( "InvalidPacket packet sequence cannot be 0")
+		return tibctypes.Wrap(ErrInvalidPacket, "packet sequence cannot be 0")
 	}
 	return nil
 }

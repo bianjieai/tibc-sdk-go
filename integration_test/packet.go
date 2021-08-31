@@ -6,24 +6,72 @@ import (
 
 	tibc "github.com/bianjieai/tibc-sdk-go"
 	"github.com/bianjieai/tibc-sdk-go/packet"
-	"github.com/bianjieai/tibc-sdk-go/tendermint"
+	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
 	"github.com/irisnet/core-sdk-go/types"
+	"github.com/irisnet/irismod-sdk-go/nft"
 )
 
-func queryCommitment(client tibc.Client) *packet.QueryPacketCommitmentResponse {
-	res, err := client.PacketCommitment("testCreateClientC", "testCreateClientA", 1)
+func nftTransfer(sourceClient Client, keyname, class, id, receiver, destChainName, realayChainName string) (string, tibctypes.IError) {
+	baseTx := types.BaseTx{
+		From:               keyname,
+		Gas:                0,
+		Memo:               "TEST",
+		Mode:               types.Commit,
+		Password:           "12345678",
+		SimulateAndExecute: false,
+		GasAdjustment:      1.5,
+	}
+
+	_, err := sourceClient.NFT.QueryDenom(class)
+	if err != nil {
+		issue := nft.IssueDenomRequest{
+			ID:     class,
+			Name:   "testdenom",
+			Schema: "{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"}}}",
+		}
+
+		txreq, err := sourceClient.NFT.IssueDenom(issue, baseTx)
+		if err != nil {
+			return "", tibctypes.New("nfterror", 0, "error issuedenom")
+		}
+		fmt.Println(txreq)
+	} else {
+		fmt.Println("denom : ", class, "  already exist,so jump to mint nft ")
+	}
+	_, err = sourceClient.NFT.QueryNFT(class, id)
+	if err != nil {
+		nftRequest := nft.MintNFTRequest{
+			Denom:     class,
+			ID:        id,
+			URI:       "https://test.com",
+			Data:      "{\"name\":\"test denombname\"}",
+			Name:      "",
+			Recipient: "",
+		}
+		txreq, err := sourceClient.NFT.MintNFT(nftRequest, baseTx)
+		if err != nil {
+			return "", tibctypes.New("nfterror", 1, "error mint nft")
+		}
+		fmt.Println(txreq)
+	} else {
+		fmt.Println("nft : ", id, "  already exist,so jump to  nft transfer")
+	}
+
+	txres, err := sourceClient.Tendermint.NftTransfer(class, id, receiver, destChainName, realayChainName, baseTx)
+	if err != nil {
+		return "", tibctypes.New("nfterror", 2, "error nft transfer")
+	}
+	fmt.Println(txres)
+	return txres.Hash, nil
+
+}
+func queryCommitment(client tibc.Client, destName string, sourceName string, seq uint64) *packet.QueryPacketCommitmentResponse {
+	res, err := client.PacketCommitment(destName, sourceName, seq)
 	if err != nil {
 		fmt.Println(err)
 		return nil
 	}
 	fmt.Println(res.String())
-
-	res1, err := client.PacketCommitments("testCreateClientC", "testCreateClientA", nil)
-	if err != nil {
-		fmt.Println(err)
-		return nil
-	}
-	fmt.Println("commitments:  ", res1.Commitments)
 	return res
 }
 
@@ -100,7 +148,6 @@ func getpacket(tx types.ResultQueryTx) (packet.Packet, error) {
 		fmt.Println(err)
 		return packet.Packet{}, err
 	}
-	fmt.Println(num)
 	return packet.Packet{
 		Sequence:         uint64(num),
 		SourceChain:      sourceChain,
@@ -151,7 +198,6 @@ func getpacketAndAck(tx types.ResultQueryTx) (packet.Packet, []byte, error) {
 		fmt.Println(err)
 		return packet.Packet{}, nil, err
 	}
-	fmt.Println(num)
 	return packet.Packet{
 		Sequence:         uint64(num),
 		SourceChain:      sourceChain,
@@ -161,13 +207,12 @@ func getpacketAndAck(tx types.ResultQueryTx) (packet.Packet, []byte, error) {
 		Data:             []byte(data),
 	}, []byte(ack), nil
 }
-func sendAck(sourceClient tibc.Client, destClient tibc.Client, keyname string) {
-	tx, err := sourceClient.CoreSdk.QueryTx("CC57E9C818F1C164CF377674642A4CA67B4F49CDD3648F1C764E7729419C8E82")
+func sendAck(sourceClient Client, destClient Client, keyname string, txhash string) (string, tibctypes.IError) {
+	tx, err := destClient.QueryTx(txhash)
 	if err != nil {
-		fmt.Println(err)
-		return
+		return "", tibctypes.New("querytx", 0, "error query tx")
 	}
-	clients, err := destClient.GetClientState("testCreateClientC")
+	clients, err := sourceClient.Tendermint.GetClientState(destClient.ChainName)
 	height := clients.GetLatestHeight()
 	packet1, ack, err := getpacketAndAck(tx)
 	baseTx := types.BaseTx{
@@ -181,30 +226,33 @@ func sendAck(sourceClient tibc.Client, destClient tibc.Client, keyname string) {
 	}
 	// ProofCommitment and ProofHeight are derived from the packet
 	key := packet.PacketAcknowledgementKey(packet1.GetSourceChain(), packet1.GetDestChain(), packet1.GetSequence())
-	_, proofBz, _, err1 := tendermint.QueryTendermintProof(sourceClient.CoreSdk, int64(height.GetRevisionHeight()), key)
+	_, proofBz, _, err1 := destClient.Tendermint.QueryTendermintProof(int64(height.GetRevisionHeight()), key)
 
 	if err1 != nil {
 		fmt.Println(err1)
-		return
+		return "", tibctypes.New("queryProof", 0, "error query proof")
+
 	}
-	ress, err := destClient.Acknowledgement(proofBz, ack, packet1, int64(height.GetRevisionHeight()), 0, baseTx)
+	ress, err := sourceClient.Tendermint.Acknowledgement(proofBz, ack, packet1, int64(height.GetRevisionHeight()), clients.GetLatestHeight().GetRevisionNumber(), baseTx)
 	if err != nil {
 		fmt.Println(err)
-		return
+		return "", tibctypes.New("queryProof", 0, "error send acknowledgement")
 	}
 	fmt.Println(ress)
+	return ress.Hash, nil
 }
 
-func packetRecive(sourceClient tibc.Client, destClient tibc.Client, keyname string) {
-	tx, err := sourceClient.CoreSdk.QueryTx("ECDD26B95971537A089E9DB1E02EB30B5E433281063504614D12A093686E6B4A")
+func packetRecive(sourceClient Client, destClient Client, keyname string, txHash string) (string, tibctypes.IError) {
+	tx, err := sourceClient.QueryTx(txHash)
 	if err != nil {
 		fmt.Println(err)
-		return
+		return "", tibctypes.New("querytx", 0, "error query tx")
 	}
-	res := queryCommitment(sourceClient)
-	clients, err := destClient.GetClientState("testCreateClientA")
+	clients, err := destClient.Tendermint.GetClientState(sourceClient.ChainName)
+
 	height := clients.GetLatestHeight()
 	packet1, err := getpacket(tx)
+	//fmt.Println(packet1.String())
 	baseTx := types.BaseTx{
 		From:               keyname,
 		Gas:                0,
@@ -216,23 +264,23 @@ func packetRecive(sourceClient tibc.Client, destClient tibc.Client, keyname stri
 	}
 	// ProofCommitment and ProofHeight are derived from the packet
 	key := packet.PacketCommitmentKey(packet1.GetSourceChain(), packet1.GetDestChain(), packet1.GetSequence())
-	_, proofBz, _, err1 := tendermint.QueryTendermintProof(sourceClient.CoreSdk, int64(height.GetRevisionHeight()), key)
+	_, proofBz, _, err1 := sourceClient.Tendermint.QueryTendermintProof(int64(height.GetRevisionHeight()), key)
 	if err1 != nil {
 		fmt.Println(err1)
-		return
+		return "", tibctypes.New("queryProof", 0, "error query proof")
 	}
-	ress, err := destClient.RecvPacket(proofBz, packet1, int64(height.GetRevisionHeight()), res.ProofHeight.RevisionNumber, baseTx)
+	ress, err := destClient.Tendermint.RecvPacket(proofBz, packet1, int64(height.GetRevisionHeight()), clients.GetLatestHeight().GetRevisionNumber(), baseTx)
 	if err != nil {
-		fmt.Println(err)
-		return
+		return "", tibctypes.New("recvPacket", 0, "error recive packet")
 	}
 	fmt.Println(ress)
+	return ress.Hash, nil
 }
-func cleanPacket(sourceClient tibc.Client, keyname string) {
+func cleanPacket(sourceClient, destClient Client, seq uint64, keyname string) (string, tibctypes.IError) {
 	cleanpacket := packet.CleanPacket{
-		Sequence:         1,
-		SourceChain:      "testCreateClientA",
-		DestinationChain: "testCreateClientC",
+		Sequence:         seq,
+		SourceChain:      sourceClient.ChainName,
+		DestinationChain: destClient.ChainName,
 		RelayChain:       "",
 	}
 	baseTx := types.BaseTx{
@@ -244,20 +292,21 @@ func cleanPacket(sourceClient tibc.Client, keyname string) {
 		SimulateAndExecute: false,
 		GasAdjustment:      1.5,
 	}
-	res, err := sourceClient.CleanPacket(cleanpacket, baseTx)
+	res, err := sourceClient.Tendermint.CleanPacket(cleanpacket, baseTx)
 	if err != nil {
 		fmt.Println(err)
+		return "", err
 	}
 	fmt.Println(res)
-
+	return res.Hash, nil
 }
-func recvCleanPacket(sourceClient tibc.Client, destClient tibc.Client, keyname string) {
-	tx, err := sourceClient.CoreSdk.QueryTx("ECDD26B95971537A089E9DB1E02EB30B5E433281063504614D12A093686E6B4A")
+func recvCleanPacket(sourceClient, destClient Client, keyname string, txhash string) (string, tibctypes.IError) {
+	tx, err := sourceClient.QueryTx(txhash)
 	if err != nil {
 		fmt.Println(err)
-		return
+		return "", tibctypes.New("querytx", 0, "error query tx")
 	}
-	clients, err := destClient.GetClientState("testCreateClientA")
+	clients, err := destClient.Tendermint.GetClientState(sourceClient.ChainName)
 	height := clients.GetLatestHeight()
 	cleanpack, err := getcleanpack(tx)
 	if err != nil {
@@ -274,17 +323,18 @@ func recvCleanPacket(sourceClient tibc.Client, destClient tibc.Client, keyname s
 	}
 	// ProofCommitment and ProofHeight are derived from the packet
 	key := packet.CleanPacketCommitmentKey(cleanpack.GetSourceChain(), cleanpack.GetDestChain())
-	_, proofBz, _, err1 := tendermint.QueryTendermintProof(sourceClient.CoreSdk, int64(height.GetRevisionHeight()), key)
+	_, proofBz, _, err1 := sourceClient.Tendermint.QueryTendermintProof(int64(height.GetRevisionHeight()), key)
 	if err1 != nil {
 		fmt.Println(err1)
-		return
+		return "", tibctypes.New("queryProof", 0, "error query proof")
 	}
-	ress, err := destClient.RecvCleanPacket(proofBz, cleanpack, int64(height.GetRevisionHeight()), 0, baseTx)
+	ress, err := destClient.Tendermint.RecvCleanPacket(proofBz, cleanpack, int64(height.GetRevisionHeight()), clients.GetLatestHeight().GetRevisionNumber(), baseTx)
 	if err != nil {
 		fmt.Println(err)
-		return
+		return "", tibctypes.New("recvcleanpacket", 0, "error Recv CleanPacket")
 	}
 	fmt.Println(ress)
+	return ress.Hash, nil
 }
 
 func getcleanpack(tx types.ResultQueryTx) (packet.CleanPacket, error) {
@@ -313,7 +363,6 @@ func getcleanpack(tx types.ResultQueryTx) (packet.CleanPacket, error) {
 		fmt.Println(err)
 		return packet.CleanPacket{}, nil
 	}
-	//fmt.Println(num)
 	return packet.CleanPacket{
 		Sequence:         uint64(num),
 		SourceChain:      sourceChain,

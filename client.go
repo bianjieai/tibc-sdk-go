@@ -2,29 +2,34 @@ package tibc_sdk_go
 
 import (
 	"context"
+	"fmt"
+
+	commitmenttypes "github.com/bianjieai/tibc-sdk-go/commitment"
+	"github.com/irisnet/core-sdk-go/common/codec"
 
 	"github.com/bianjieai/tibc-sdk-go/client"
 	"github.com/bianjieai/tibc-sdk-go/packet"
 	"github.com/bianjieai/tibc-sdk-go/tendermint"
+	tibcnft "github.com/bianjieai/tibc-sdk-go/types"
 	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
-	sdk "github.com/irisnet/core-sdk-go"
-	commoncodec "github.com/irisnet/core-sdk-go/common/codec"
 	cryptotypes "github.com/irisnet/core-sdk-go/common/codec/types"
 	"github.com/irisnet/core-sdk-go/types"
 	"github.com/irisnet/core-sdk-go/types/query"
 )
 
 type Client struct {
-	CoreSdk sdk.Client
-	commoncodec.Marshaler
+	//CoreSdk sdk.Client todo?
+	types.EncodingConfig
+	types.BaseClient
 }
 
-func NewClient(coreClient sdk.Client) Client {
+func NewClient(baseClient types.BaseClient, encodingConfig types.EncodingConfig) Client {
 	tibcClient := &Client{
-		CoreSdk:   coreClient,
-		Marshaler: coreClient.EncodingConfig().Marshaler,
+		//CoreSdk:   coreClient, todo?
+		BaseClient:     baseClient,
+		EncodingConfig: encodingConfig,
 	}
-	tibcClient.RegisterInterfaceTypes(coreClient.EncodingConfig().InterfaceRegistry)
+	tibcClient.RegisterInterfaceTypes(tibcClient.EncodingConfig.InterfaceRegistry)
 	return *tibcClient
 }
 
@@ -32,6 +37,7 @@ func (c Client) RegisterInterfaceTypes(registry cryptotypes.InterfaceRegistry) {
 	packet.RegisterInterfaces(registry)
 	tendermint.RegisterInterfaces(registry)
 	tibctypes.RegisterInterfaces(registry)
+	tibcnft.RegisterInterfaces(registry)
 }
 
 func (c Client) Name() string {
@@ -39,15 +45,15 @@ func (c Client) Name() string {
 }
 
 // GetClientState queries an IBC light client.
-func (c Client) GetClientState(chainName string) (tibctypes.ClientState, error) {
+func (c Client) GetClientState(chainName string) (tibctypes.ClientState, tibctypes.IError) {
 	var clientState tibctypes.ClientState
 	in := &client.QueryClientStateRequest{
 		ChainName: chainName,
 	}
-
-	conn, err := c.CoreSdk.GenConn()
+	conn, err := c.GenConn()
+	//conn, err := c.CoreSdk.GenConn()
 	if err != nil {
-		return clientState, types.Wrap(err)
+		return clientState, tibctypes.ErrChainConn
 	}
 
 	res, err := client.NewQueryClient(conn).ClientState(
@@ -55,51 +61,53 @@ func (c Client) GetClientState(chainName string) (tibctypes.ClientState, error) 
 		in,
 	)
 	if err != nil {
-		return clientState, types.Wrap(err)
+		return clientState, tibctypes.ErrGetLightClientState
 	}
 
 	if err := c.Marshaler.UnpackAny(res.ClientState, &clientState); err != nil {
-		return clientState, types.Wrap(err)
+		return clientState, tibctypes.ErrUnpackAny
 	}
 	return clientState, nil
 
 }
 
 // GetClientStates queries all the IBC light clients of a chain.
-func (c Client) GetClientStates() ([]tibctypes.ClientState, error) {
+func (c Client) GetClientStates() ([]tibctypes.ClientState, tibctypes.IError) {
 	in := &client.QueryClientStatesRequest{}
-	conn, err := c.CoreSdk.GenConn()
+	conn, err := c.GenConn()
+
+	//conn, err := c.CoreSdk.GenConn()
 	if err != nil {
-		return nil, types.Wrap(err)
+		return nil, tibctypes.ErrChainConn
 	}
 	res, err := client.NewQueryClient(conn).ClientStates(
 		context.Background(),
 		in,
 	)
 	if err != nil {
-		return nil, types.Wrap(err)
+		return nil, tibctypes.ErrGetLightClientState
 	}
 	clientState := make([]tibctypes.ClientState, len(res.ClientStates))
 	for index, value := range res.ClientStates {
 		if err := c.Marshaler.UnpackAny(value.ClientState, &clientState[index]); err != nil {
-			return nil, types.Wrap(err)
+			return nil, tibctypes.ErrUnpackAny
 		}
 	}
-
-	return clientState, err
+	return clientState, nil
 }
 
 // GetConsensusState queries a consensus state associated with a client state at
 // a given height.
-func (c Client) GetConsensusState(chainName string, height uint64) (tibctypes.ConsensusState, error) {
+func (c Client) GetConsensusState(chainName string, height uint64) (tibctypes.ConsensusState, tibctypes.IError) {
 	req := &client.QueryConsensusStateRequest{
 		ChainName:      chainName,
 		RevisionHeight: height,
 	}
+	conn, err := c.GenConn()
 
-	conn, err := c.CoreSdk.GenConn()
+	//conn, err := c.CoreSdk.GenConn()
 	if err != nil {
-		return nil, types.Wrap(err)
+		return nil, tibctypes.ErrChainConn
 	}
 
 	res, err := client.NewQueryClient(conn).ConsensusState(
@@ -107,12 +115,12 @@ func (c Client) GetConsensusState(chainName string, height uint64) (tibctypes.Co
 		req,
 	)
 	if err != nil {
-		return nil, types.Wrap(err)
+		return nil, tibctypes.ErrGetLightClientConsensusState
 	}
 	var consensusState tibctypes.ConsensusState
 
 	if err := c.Marshaler.UnpackAny(res.ConsensusState, &consensusState); err != nil {
-		return nil, types.Wrap(err)
+		return nil, tibctypes.ErrUnpackAny
 	}
 
 	return consensusState, nil
@@ -120,13 +128,15 @@ func (c Client) GetConsensusState(chainName string, height uint64) (tibctypes.Co
 
 // GetConsensusStates queries all the consensus state associated with a given
 // client.
-func (c Client) GetConsensusStates(chainName string) ([]tibctypes.ConsensusState, error) {
+func (c Client) GetConsensusStates(chainName string) ([]tibctypes.ConsensusState, tibctypes.IError) {
 	req := &client.QueryConsensusStatesRequest{
 		ChainName: chainName,
 	}
-	conn, err := c.CoreSdk.GenConn()
+	conn, err := c.GenConn()
+
+	//conn, err := c.CoreSdk.GenConn()
 	if err != nil {
-		return nil, types.Wrap(err)
+		return nil, tibctypes.ErrChainConn
 	}
 
 	res, err := client.NewQueryClient(conn).ConsensusStates(
@@ -134,12 +144,12 @@ func (c Client) GetConsensusStates(chainName string) ([]tibctypes.ConsensusState
 		req,
 	)
 	if err != nil {
-		return nil, types.Wrap(err)
+		return nil, tibctypes.ErrGetLightClientConsensusState
 	}
 	ConsensusState := make([]tibctypes.ConsensusState, len(res.ConsensusStates))
 	for index, value := range res.ConsensusStates {
 		if err := c.Marshaler.UnpackAny(value.ConsensusState, &ConsensusState[index]); err != nil {
-			return nil, types.Wrap(err)
+			return nil, tibctypes.ErrUnpackAny
 		}
 	}
 	return ConsensusState, nil
@@ -147,13 +157,15 @@ func (c Client) GetConsensusStates(chainName string) ([]tibctypes.ConsensusState
 
 // Relayers queries all the relayers associated with a given
 // client.
-func (c Client) Relayers(chainName string) ([]string, error) {
+func (c Client) Relayers(chainName string) ([]string, tibctypes.IError) {
 	req := &client.QueryRelayersRequest{
 		ChainName: chainName,
 	}
-	conn, err := c.CoreSdk.GenConn()
+	conn, err := c.GenConn()
+
+	//conn, err := c.CoreSdk.GenConn()
 	if err != nil {
-		return nil, types.Wrap(err)
+		return nil, tibctypes.ErrChainConn
 	}
 
 	relay, err := client.NewQueryClient(conn).Relayers(
@@ -161,20 +173,22 @@ func (c Client) Relayers(chainName string) ([]string, error) {
 		req,
 	)
 	if err != nil {
-		return nil, types.Wrap(err)
+		return nil, tibctypes.ErrGetRelayer
 	}
 
 	return relay.Relayers, nil
 }
 
-func (c Client) UpdateClient(req tibctypes.UpdateClientRequest, baseTx types.BaseTx) (types.ResultTx, types.Error) {
-	owner, err := c.CoreSdk.QueryAddress(baseTx.From, baseTx.Password)
+func (c Client) UpdateClient(req tibctypes.UpdateClientRequest, baseTx types.BaseTx) (types.ResultTx, tibctypes.IError) {
+	owner, err := c.QueryAddress(baseTx.From, baseTx.Password)
+
+	//owner, err := c.CoreSdk.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return types.ResultTx{}, types.Wrap(err)
+		return types.ResultTx{}, err.(tibctypes.IError)
 	}
 	res, errs := cryptotypes.NewAnyWithValue(req.Header)
 	if errs != nil {
-		return types.ResultTx{}, types.Wrap(errs)
+		return types.ResultTx{}, tibctypes.ErrPackAny
 	}
 	msg := &client.MsgUpdateClient{
 		ChainName: req.ChainName,
@@ -183,126 +197,180 @@ func (c Client) UpdateClient(req tibctypes.UpdateClientRequest, baseTx types.Bas
 		// signer address
 		Signer: owner.String(),
 	}
-
-	return c.CoreSdk.BuildAndSend([]types.Msg{msg}, baseTx)
+	resultTx, err := c.BuildAndSend([]types.Msg{msg}, baseTx)
+	//resultTx, err := c.CoreSdk.BuildAndSend([]types.Msg{msg}, baseTx)
+	if err != nil {
+		return types.ResultTx{}, tibctypes.ErrUpdateClient
+	}
+	return resultTx, nil
 }
 
-func (c Client) PacketCommitment(destChain string, sourceChain string, sequence uint64) (*packet.QueryPacketCommitmentResponse, error) {
+func (c Client) PacketCommitment(destChain string, sourceChain string, sequence uint64) (*packet.QueryPacketCommitmentResponse, tibctypes.IError) {
 	req := &packet.QueryPacketCommitmentRequest{
 		DestChain:   destChain,
 		SourceChain: sourceChain,
 		Sequence:    sequence,
 	}
-	conn, err := c.CoreSdk.GenConn()
+	conn, err := c.GenConn()
+
+	//conn, err := c.CoreSdk.GenConn()
 	if err != nil {
-		return nil, types.Wrap(err)
+		return nil, tibctypes.ErrChainConn
 	}
-	return packet.NewQueryClient(conn).PacketCommitment(
+	req1, err := packet.NewQueryClient(conn).PacketCommitment(
 		context.Background(),
 		req,
 	)
+	if err != nil {
+		return nil, tibctypes.ErrGetCommitmentPacket
+	}
+	return req1, nil
+	//return req1, tibctypes.ErrGetCommitmentPacket
 }
 
-func (c Client) PacketCommitments(destChain string, sourceChain string, Pagination *query.PageRequest) (*packet.QueryPacketCommitmentsResponse, error) {
+func (c Client) PacketCommitments(destChain string, sourceChain string, Pagination *query.PageRequest) (*packet.QueryPacketCommitmentsResponse, tibctypes.IError) {
 	req := &packet.QueryPacketCommitmentsRequest{
 		DestChain:   destChain,
 		SourceChain: sourceChain,
 		Pagination:  Pagination,
 	}
-	conn, err := c.CoreSdk.GenConn()
+	conn, err := c.GenConn()
+
+	//conn, err := c.CoreSdk.GenConn()
 	if err != nil {
-		return nil, types.Wrap(err)
+		return nil, tibctypes.ErrChainConn
 	}
-	return packet.NewQueryClient(conn).PacketCommitments(
+	packComms, err := packet.NewQueryClient(conn).PacketCommitments(
 		context.Background(),
 		req,
 	)
+	if err != nil {
+		return nil, tibctypes.ErrGetCommitmentPacket
+	}
+	return packComms, nil
 }
 
-func (c Client) PacketReceipt(destChain string, sourceChain string, sequence uint64) (*packet.QueryPacketReceiptResponse, error) {
+func (c Client) PacketReceipt(destChain string, sourceChain string, sequence uint64) (*packet.QueryPacketReceiptResponse, tibctypes.IError) {
 	req := &packet.QueryPacketReceiptRequest{
 		DestChain:   destChain,
 		SourceChain: sourceChain,
 		Sequence:    sequence,
 	}
-	conn, err := c.CoreSdk.GenConn()
+	conn, err := c.GenConn()
+
+	//conn, err := c.CoreSdk.GenConn()
 	if err != nil {
-		return nil, types.Wrap(err)
+		return nil, tibctypes.ErrChainConn
 	}
-	return packet.NewQueryClient(conn).PacketReceipt(
+	receipt, err := packet.NewQueryClient(conn).PacketReceipt(
 		context.Background(),
 		req,
 	)
+	if err != nil {
+		return nil, tibctypes.ErrGetReceiptPacket
+	}
+	return receipt, nil
 }
-func (c Client) PacketAcknowledgement(destChain string, sourceChain string, sequence uint64) (*packet.QueryPacketAcknowledgementResponse, error) {
+func (c Client) PacketAcknowledgement(destChain string, sourceChain string, sequence uint64) (*packet.QueryPacketAcknowledgementResponse, tibctypes.IError) {
 	req := &packet.QueryPacketAcknowledgementRequest{
 		DestChain:   destChain,
 		SourceChain: sourceChain,
 		Sequence:    sequence,
 	}
-	conn, err := c.CoreSdk.GenConn()
+	conn, err := c.GenConn()
+
+	//conn, err := c.CoreSdk.GenConn()
 	if err != nil {
-		return nil, types.Wrap(err)
+		return nil, tibctypes.ErrChainConn
 	}
-	return packet.NewQueryClient(conn).PacketAcknowledgement(
+	acknowledgement, err := packet.NewQueryClient(conn).PacketAcknowledgement(
 		context.Background(),
 		req,
 	)
+	if err != nil {
+		return nil, tibctypes.ErrGetAckPacket
+	}
+	return acknowledgement, nil
 }
-func (c Client) PacketAcknowledgements(destChain string, sourceChain string, Pagination *query.PageRequest) (*packet.QueryPacketAcknowledgementsResponse, error) {
+func (c Client) PacketAcknowledgements(destChain string, sourceChain string, Pagination *query.PageRequest) (*packet.QueryPacketAcknowledgementsResponse, tibctypes.IError) {
 	req := &packet.QueryPacketAcknowledgementsRequest{
 		DestChain:   destChain,
 		SourceChain: sourceChain,
 		Pagination:  Pagination,
 	}
-	conn, err := c.CoreSdk.GenConn()
+	conn, err := c.GenConn()
+	//conn, err := c.CoreSdk.GenConn()
 	if err != nil {
-		return nil, types.Wrap(err)
+		return nil, tibctypes.ErrChainConn
 	}
-	return packet.NewQueryClient(conn).PacketAcknowledgements(
+	acknowledgements, err := packet.NewQueryClient(conn).PacketAcknowledgements(
 		context.Background(),
 		req,
 	)
+	if err != nil {
+		return nil, tibctypes.ErrGetAckPacket
+	}
+	return acknowledgements, nil
 }
-func (c Client) UnreceivedPackets(destChain string, sourceChain string, packetCommitmentSequences []uint64) (*packet.QueryUnreceivedPacketsResponse, error) {
+func (c Client) UnreceivedPackets(destChain string, sourceChain string, packetCommitmentSequences []uint64) (*packet.QueryUnreceivedPacketsResponse, tibctypes.IError) {
 	req := &packet.QueryUnreceivedPacketsRequest{
 		DestChain:                 destChain,
 		SourceChain:               sourceChain,
 		PacketCommitmentSequences: packetCommitmentSequences,
 	}
-	conn, err := c.CoreSdk.GenConn()
+	conn, err := c.GenConn()
+
+	//conn, err := c.CoreSdk.GenConn()
 	if err != nil {
-		return nil, types.Wrap(err)
+		return nil, tibctypes.ErrChainConn
 	}
-	return packet.NewQueryClient(conn).UnreceivedPackets(
+	unreceivedPackets, err := packet.NewQueryClient(conn).UnreceivedPackets(
 		context.Background(),
 		req,
 	)
+	if err != nil {
+		return nil, tibctypes.ErrGetUnreceivedPacket
+	}
+	return unreceivedPackets, nil
 }
 
-func (c Client) UnreceivedAcks(destChain string, sourceChain string, packetAckSequences []uint64) (*packet.QueryUnreceivedAcksResponse, error) {
+func (c Client) UnreceivedAcks(destChain string, sourceChain string, packetAckSequences []uint64) (*packet.QueryUnreceivedAcksResponse, tibctypes.IError) {
 	req := &packet.QueryUnreceivedAcksRequest{
 		DestChain:          destChain,
 		SourceChain:        sourceChain,
 		PacketAckSequences: packetAckSequences,
 	}
-	conn, err := c.CoreSdk.GenConn()
+	conn, err := c.GenConn()
+
+	//conn, err := c.CoreSdk.GenConn()
 	if err != nil {
-		return nil, types.Wrap(err)
+		return nil, tibctypes.ErrChainConn
 	}
-	return packet.NewQueryClient(conn).UnreceivedAcks(
+	unreceivedAcks, err := packet.NewQueryClient(conn).UnreceivedAcks(
 		context.Background(),
 		req,
 	)
+	if err != nil {
+		return nil, tibctypes.ErrGetUnreceivedPacket
+	}
+	return unreceivedAcks, nil
 }
-func (c Client) RecvPackets(msgs []types.Msg, baseTx types.BaseTx) (types.ResultTx, types.Error) {
-	return c.CoreSdk.BuildAndSend(msgs, baseTx)
+func (c Client) RecvPackets(msgs []types.Msg, baseTx types.BaseTx) (types.ResultTx, tibctypes.IError) {
+	txreq, err := c.BuildAndSend(msgs, baseTx)
+
+	//txreq, err := c.CoreSdk.BuildAndSend(msgs, baseTx)
+	if err != nil {
+		return types.ResultTx{}, tibctypes.ErrRecvPacket
+	}
+	return txreq, nil
 }
 
-func (c Client) RecvPacket(proof []byte, pack packet.Packet, height int64, revisionNumber uint64, baseTx types.BaseTx) (types.ResultTx, types.Error) {
-	owner, err := c.CoreSdk.QueryAddress(baseTx.From, baseTx.Password)
+func (c Client) RecvPacket(proof []byte, pack packet.Packet, height int64, revisionNumber uint64, baseTx types.BaseTx) (types.ResultTx, tibctypes.IError) {
+	owner, err := c.QueryAddress(baseTx.From, baseTx.Password)
+
+	//owner, err := c.CoreSdk.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return types.ResultTx{}, types.Wrap(err)
+		return types.ResultTx{}, err.(tibctypes.IError)
 	}
 	msg := &packet.MsgRecvPacket{
 		Packet:          pack,
@@ -313,13 +381,21 @@ func (c Client) RecvPacket(proof []byte, pack packet.Packet, height int64, revis
 		},
 		Signer: owner.String(),
 	}
-	return c.CoreSdk.BuildAndSend([]types.Msg{msg}, baseTx)
+	txreq, err := c.BuildAndSend([]types.Msg{msg}, baseTx)
+
+	//txreq, err := c.CoreSdk.BuildAndSend([]types.Msg{msg}, baseTx)
+	if err != nil {
+		return types.ResultTx{}, tibctypes.ErrRecvPacket
+	}
+	return txreq, nil
 }
 
-func (c Client) Acknowledgement(proof []byte, acknowledgement []byte, pack packet.Packet, height int64, revisionNumber uint64, baseTx types.BaseTx) (types.ResultTx, types.Error) {
-	owner, err := c.CoreSdk.QueryAddress(baseTx.From, baseTx.Password)
+func (c Client) Acknowledgement(proof []byte, acknowledgement []byte, pack packet.Packet, height int64, revisionNumber uint64, baseTx types.BaseTx) (types.ResultTx, tibctypes.IError) {
+	owner, err := c.QueryAddress(baseTx.From, baseTx.Password)
+
+	//owner, err := c.CoreSdk.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return types.ResultTx{}, types.Wrap(err)
+		return types.ResultTx{}, err.(tibctypes.IError)
 	}
 	msg := &packet.MsgAcknowledgement{
 		Packet:          pack,
@@ -331,25 +407,41 @@ func (c Client) Acknowledgement(proof []byte, acknowledgement []byte, pack packe
 		},
 		Signer: owner.String(),
 	}
-	return c.CoreSdk.BuildAndSend([]types.Msg{msg}, baseTx)
+	txreq, err := c.BuildAndSend([]types.Msg{msg}, baseTx)
+
+	//txreq, err := c.CoreSdk.BuildAndSend([]types.Msg{msg}, baseTx)
+	if err != nil {
+		return types.ResultTx{}, tibctypes.ErrSendAckPacket
+	}
+	return txreq, nil
 }
 
-func (c Client) CleanPacket(cleanPacket packet.CleanPacket, baseTx types.BaseTx) (types.ResultTx, types.Error) {
-	owner, err := c.CoreSdk.QueryAddress(baseTx.From, baseTx.Password)
+func (c Client) CleanPacket(cleanPacket packet.CleanPacket, baseTx types.BaseTx) (types.ResultTx, tibctypes.IError) {
+	owner, err := c.QueryAddress(baseTx.From, baseTx.Password)
+
+	//owner, err := c.CoreSdk.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return types.ResultTx{}, types.Wrap(err)
+		return types.ResultTx{}, err.(tibctypes.IError)
 	}
 	msg := &packet.MsgCleanPacket{
 		CleanPacket: cleanPacket,
 		Signer:      owner.String(),
 	}
-	return c.CoreSdk.BuildAndSend([]types.Msg{msg}, baseTx)
+	txreq, err := c.BuildAndSend([]types.Msg{msg}, baseTx)
+
+	//txreq, err := c.CoreSdk.BuildAndSend([]types.Msg{msg}, baseTx)
+	if err != nil {
+		return types.ResultTx{}, tibctypes.ErrSendCleanPacket
+	}
+	return txreq, nil
 }
 
-func (c Client) RecvCleanPacket(proof []byte, pack packet.CleanPacket, height int64, revisionNumber uint64, baseTx types.BaseTx) (types.ResultTx, types.Error) {
-	owner, err := c.CoreSdk.QueryAddress(baseTx.From, baseTx.Password)
+func (c Client) RecvCleanPacket(proof []byte, pack packet.CleanPacket, height int64, revisionNumber uint64, baseTx types.BaseTx) (types.ResultTx, tibctypes.IError) {
+	owner, err := c.QueryAddress(baseTx.From, baseTx.Password)
+
+	//owner, err := c.CoreSdk.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return types.ResultTx{}, types.Wrap(err)
+		return types.ResultTx{}, err.(tibctypes.IError)
 	}
 
 	msg := &packet.MsgRecvCleanPacket{
@@ -361,5 +453,66 @@ func (c Client) RecvCleanPacket(proof []byte, pack packet.CleanPacket, height in
 		},
 		Signer: owner.String(),
 	}
-	return c.CoreSdk.BuildAndSend([]types.Msg{msg}, baseTx)
+	txreq, err := c.BuildAndSend([]types.Msg{msg}, baseTx)
+
+	//txreq, err := c.CoreSdk.BuildAndSend([]types.Msg{msg}, baseTx)
+	if err != nil {
+		return types.ResultTx{}, tibctypes.ErrRecvCleanPacket
+	}
+	return txreq, nil
+}
+
+func (c Client) NftTransfer(class, id, receiver, destChainName, realayChainName string, baseTx types.BaseTx) (types.ResultTx, tibctypes.IError) {
+	owner, err := c.QueryAddress(baseTx.From, baseTx.Password)
+
+	//owner, err := c.CoreSdk.QueryAddress(baseTx.From, baseTx.Password)
+	if err != nil {
+		return types.ResultTx{}, err.(tibctypes.IError)
+	}
+	msg := &tibcnft.MsgNftTransfer{
+		Class:       class,
+		Id:          id,
+		Sender:      owner.String(),
+		Receiver:    receiver,
+		DestChain:   destChainName,
+		RealayChain: realayChainName,
+	}
+	txreq, err := c.BuildAndSend([]types.Msg{msg}, baseTx)
+
+	//txreq, err := c.CoreSdk.BuildAndSend([]types.Msg{msg}, baseTx)
+	if err != nil {
+		return types.ResultTx{}, tibctypes.ErrNftTransfer
+	}
+	return txreq, nil
+}
+func (c Client) QueryTendermintProof(height int64, key []byte) ([]byte, []byte, uint64, error) {
+	// ABCI queries at heights 1, 2 or less than or equal to 0 are not supported.
+	// Base app does not support queries for height less than or equal to 1.
+	// Therefore, a query at height 2 would be equivalent to a query at height 3.
+	// A height of 0 will query with the lastest state.
+	if height != 0 && height <= 2 {
+		return nil, nil, 0, fmt.Errorf("proof queries at height <= 2 are not supported")
+	}
+	// Use the IAVL height if a valid tendermint height is passed in.
+	// A height of 0 will query with the latest state.
+	if height != 0 {
+		height--
+	}
+	res, err := c.QueryStore(key, "tibc", height, true)
+	if err != nil {
+		return nil, nil, 0, err
+	}
+
+	merkleProof, err := commitmenttypes.ConvertProofs(res.ProofOps)
+	if err != nil {
+		return nil, nil, 0, err
+	}
+	cdc := codec.NewProtoCodec(c.EncodingConfig.InterfaceRegistry)
+
+	proofBz, err := cdc.MarshalBinaryBare(&merkleProof)
+	if err != nil {
+		return nil, nil, 0, err
+	}
+
+	return res.Value, proofBz, uint64(res.Height) + 1, nil
 }

@@ -2,7 +2,6 @@ package tendermint
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -62,28 +61,28 @@ func (h Header) GetTime() time.Time {
 // with MsgCreateClient
 func (h Header) ValidateBasic() error {
 	if h.SignedHeader == nil {
-		return errors.New("tendermint signed header cannot be nil")
+		return types.Wrap(types.ErrInvalidHeader, "tendermint signed header cannot be nil")
 	}
 	if h.Header == nil {
-		return errors.New("tendermint header cannot be nil")
+		return types.Wrap(types.ErrInvalidHeader, "tendermint header cannot be nil")
 	}
 	tmSignedHeader, err := tmtypes.SignedHeaderFromProto(h.SignedHeader)
 	if err != nil {
-		return errors.New("header is not a tendermint header")
+		return types.Wrap(err, "header is not a tendermint header")
 	}
 	if err := tmSignedHeader.ValidateBasic(h.Header.GetChainID()); err != nil {
-		return errors.New("header failed basic validation")
+		return types.Wrap(err, "header failed basic validation")
 	}
 
 	if h.ValidatorSet == nil {
-		return errors.New("validator set is nil")
+		return types.Wrap(types.ErrInvalidHeader, "validator set is nil")
 	}
 	tmValset, err := tmtypes.ValidatorSetFromProto(h.ValidatorSet)
 	if err != nil {
-		return errors.New("validator set is not tendermint validator set")
+		return types.Wrap(err, "validator set is not tendermint validator set")
 	}
 	if !bytes.Equal(h.Header.ValidatorsHash, tmValset.Hash()) {
-		return errors.New("validator set does not match hash")
+		return types.Wrap(types.ErrInvalidHeader, "validator set does not match hash")
 	}
 	return nil
 }

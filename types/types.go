@@ -1,26 +1,25 @@
 package types
 
 import (
-	"errors"
-	sdk "github.com/irisnet/core-sdk-go/types"
-
 	coretypes "github.com/irisnet/core-sdk-go/common/codec/types"
+	sdk "github.com/irisnet/core-sdk-go/types"
 )
-
 
 // UnpackHeader unpacks an Any into a Header. It returns an error if the
 // consensus state can't be unpacked into a Header.
 func UnpackHeader(any *coretypes.Any) (Header, error) {
 	if any == nil {
-		return nil, errors.New("protobuf Any message cannot be nil")
+		return nil, Wrap(ErrUnpackAny, "protobuf Any message cannot be nil")
 	}
 
 	header, ok := any.GetCachedValue().(Header)
 	if !ok {
-		return nil, errors.New("cannot unpack Any into Header")
+		return nil, Wrapf(ErrUnpackAny, "cannot unpack Any into Header %T", any)
 	}
+
 	return header, nil
 }
+
 // Route Implements Msg
 func (msg MsgNftTransfer) Route() string { return "NFT" }
 

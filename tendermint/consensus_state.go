@@ -1,7 +1,6 @@
 package tendermint
 
 import (
-	"errors"
 	"time"
 
 	"github.com/bianjieai/tibc-sdk-go/commitment"
@@ -41,13 +40,13 @@ func (cs ConsensusState) GetTimestamp() uint64 {
 // as opposed to a consensus state constructed by the chain.
 func (cs ConsensusState) ValidateBasic() error {
 	if cs.Root.Empty() {
-		return errors.New("root cannot be empty")
+		return types.Wrap(types.ErrInvalidConsensus, "root cannot be empty")
 	}
 	if err := tmtypes.ValidateHash(cs.NextValidatorsHash); err != nil {
-		return errors.New("next validators hash is invalid")
+		return types.Wrap(err, "next validators hash is invalid")
 	}
 	if cs.Timestamp.Unix() <= 0 {
-		return errors.New("timestamp must be a positive Unix time")
+		return types.Wrap(types.ErrInvalidConsensus, "timestamp must be a positive Unix time")
 	}
 	return nil
 }

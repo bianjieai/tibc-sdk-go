@@ -14,6 +14,11 @@ import (
 	tmtypes "github.com/tendermint/tendermint/types"
 )
 
+const (
+	ConType = "{\"@type\":\"/tibc.lightclients.tendermint.v1.ConsensusState\","
+	StaType = "{\"@type\":\"/tibc.lightclients.tendermint.v1.ClientState\","
+)
+
 //Generate a JSON file needed to create the light client
 //Add the following string to the header after the file is generated
 //"@type":"/tibc.lightclients.tendermint.v1.ClientState",
@@ -25,12 +30,11 @@ func getjson(client tibc.Client, height int64) {
 		Numerator:   1,
 		Denominator: 3,
 	}
-	res, err := client.CoreSdk.QueryBlock(height)
+	res, err := client.QueryBlock(height)
 	if err != nil {
 		fmt.Println("QueryBlock fail:  ", err)
 	}
 	tmHeader := res.Block.Header
-	fmt.Println(tmHeader.ChainID)
 	lastHeight := tibcclient.NewHeight(0, 4)
 	var clientstate = &tendermint.ClientState{
 		ChainId:         tmHeader.ChainID,
@@ -54,7 +58,9 @@ func getjson(client tibc.Client, height int64) {
 	if err != nil {
 		panic(err)
 	}
-	err = ioutil.WriteFile("client_state.json", b0, os.ModeAppend)
+	b0 = []byte(StaType + string(b0)[1:])
+	clientStateName := tmHeader.ChainID + "_client_state.json"
+	err = ioutil.WriteFile(clientStateName, b0, os.ModeAppend)
 	if err != nil {
 		return
 	}
@@ -62,14 +68,16 @@ func getjson(client tibc.Client, height int64) {
 	if err != nil {
 		panic(err)
 	}
-	err = ioutil.WriteFile("consensus_state.json", b1, os.ModeAppend)
+	b1 = []byte(ConType + string(b1)[1:])
+	clientConsensusStateName := tmHeader.ChainID + "_consensus_state.json"
+	err = ioutil.WriteFile(clientConsensusStateName, b1, os.ModeAppend)
 	if err != nil {
 		return
 	}
 }
 
 func queryValidatorSet1(height int64, client tibc.Client) *tmtypes.ValidatorSet {
-	validators, err := client.CoreSdk.Validators(context.Background(), &height, nil, nil)
+	validators, err := client.Validators(context.Background(), &height, nil, nil)
 	if err != nil {
 		fmt.Println("queryValidatorSet1 fail :", err)
 	}

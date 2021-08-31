@@ -1,7 +1,6 @@
 package tendermint
 
 import (
-	"errors"
 	"strings"
 
 	"github.com/bianjieai/tibc-sdk-go/types"
@@ -41,33 +40,35 @@ func (cs ClientState) GetPrefix() types.Prefix {
 // Validate performs a basic validation of the client state fields.
 func (cs ClientState) Validate() error {
 	if strings.TrimSpace(cs.ChainId) == "" {
-		return errors.New("chain id cannot be empty string")
+		return types.Wrap(ErrInvalidChainID, "chain id cannot be empty string")
 	}
 	if err := light.ValidateTrustLevel(cs.TrustLevel.ToTendermint()); err != nil {
 		return err
 	}
 	if cs.TrustingPeriod == 0 {
-		return errors.New("trusting period cannot be zero")
+		return types.Wrap(ErrInvalidTrustingPeriod, "trusting period cannot be zero")
 	}
 	if cs.UnbondingPeriod == 0 {
-		return errors.New("unbonding period cannot be zero")
+		return types.Wrap(ErrInvalidUnbondingPeriod, "unbonding period cannot be zero")
 	}
 	if cs.MaxClockDrift == 0 {
-		return errors.New("max clock drift cannot be zero")
+		return types.Wrap(ErrInvalidMaxClockDrift, "max clock drift cannot be zero")
 	}
 	if cs.LatestHeight.RevisionHeight == 0 {
-		return errors.New("tendermint revision height cannot be zero")
+		return types.Wrapf(ErrInvalidHeaderHeight, "tendermint revision height cannot be zero")
 	}
 	if cs.TrustingPeriod >= cs.UnbondingPeriod {
-		return errors.New("trusting period should be < unbonding period")
+		return types.Wrapf(
+			ErrInvalidTrustingPeriod,
+			"trusting period (%s) should be < unbonding period (%s)", cs.TrustingPeriod, cs.UnbondingPeriod,
+		)
 	}
-
 	if cs.ProofSpecs == nil {
-		return errors.New("proof specs cannot be nil for tm client")
+		return types.Wrap(ErrInvalidProofSpecs, "proof specs cannot be nil for tm client")
 	}
-	for _, spec := range cs.ProofSpecs {
+	for i, spec := range cs.ProofSpecs {
 		if spec == nil {
-			return errors.New("proof spec cannot be nil at index")
+			return types.Wrapf(ErrInvalidProofSpecs, "proof spec cannot be nil at index: %d", i)
 		}
 	}
 	return nil
