@@ -64,7 +64,7 @@ mROEY8pNQewR8cAv1MrypPmM5V/iyAMWZUWL8h7Zvs0bdtbZSdNLqGm0Mtw2x3b8
 	chainCLightClientName = "testCreateClientC"
 )
 
-func Test_integrationClient(t *testing.T) {
+func Test_integrationClientTen(t *testing.T) {
 	clientA, err := getIntegrationClient(nodeURI0, grpcAddr0, chainID0, keyName0, password0, keyStore0, chainALightClientName)
 	if err != nil {
 		fmt.Println(err.Codespace(), err.Code(), err.Error())
@@ -91,6 +91,21 @@ func Test_integrationClient(t *testing.T) {
 	//double jump B to C  (relayer A) then return
 	nftBtoC(clientA, clientB, clientC)
 	nftCReturntoB(clientA, clientB, clientC)
+}
+
+func Test_integrationClientBsc(t *testing.T) {
+	clientA, err := getIntegrationClient(nodeURI0, grpcAddr0, chainID0, keyName0, password0, keyStore0, chainALightClientName)
+	if err != nil {
+		fmt.Println(err.Codespace(), err.Code(), err.Error(), clientA)
+		return
+	}
+	clientC, err := getIntegrationClient(nodeURI2, grpcAddr2, chainID2, keyName2, password2, keyStore2, chainCLightClientName)
+	if err != nil {
+		fmt.Println(err.Codespace(), err.Code(), err.Error(), clientC)
+		return
+	}
+	//getBSCjson(clientC.Tendermint)
+	updatebscclientTest(clientC, testneturl, "bsctestnet", keyName2)
 }
 
 func nftAtoB(clientA, clientB, clientC Client) {
@@ -152,10 +167,10 @@ func nftBReturntoA(clientA, clientB, clientC Client) {
 	fmt.Println("txhash : ", txhash)
 }
 func updateAllCient(clientA, clientB, clientC Client) {
-	updateclientTest(clientA, clientB, chainBLightClientName, keyName0)
-	updateclientTest(clientA, clientC, chainCLightClientName, keyName0)
-	updateclientTest(clientB, clientA, chainALightClientName, keyName1)
-	updateclientTest(clientC, clientA, chainALightClientName, keyName2)
+	updatetendetmintclientTest(clientA, clientB, chainBLightClientName, keyName0)
+	updatetendetmintclientTest(clientA, clientC, chainCLightClientName, keyName0)
+	updatetendetmintclientTest(clientB, clientA, chainALightClientName, keyName1)
+	updatetendetmintclientTest(clientC, clientA, chainALightClientName, keyName2)
 }
 func getIntegrationClient(nodeURI, grpcAddr, chainID, keyName, password, keyStore, chainName string) (Client, tibctypes.IError) {
 	feeCoin, err := types.ParseDecCoins("10stake")
