@@ -4,28 +4,26 @@ import (
 	"context"
 	"fmt"
 
-	commitmenttypes "github.com/bianjieai/tibc-sdk-go/commitment"
-	"github.com/irisnet/core-sdk-go/common/codec"
-
+	tibcbsc "github.com/bianjieai/tibc-sdk-go/bsc"
 	"github.com/bianjieai/tibc-sdk-go/client"
+	commitmenttypes "github.com/bianjieai/tibc-sdk-go/commitment"
 	"github.com/bianjieai/tibc-sdk-go/packet"
 	"github.com/bianjieai/tibc-sdk-go/tendermint"
 	tibcnft "github.com/bianjieai/tibc-sdk-go/types"
 	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
+	"github.com/irisnet/core-sdk-go/common/codec"
 	cryptotypes "github.com/irisnet/core-sdk-go/common/codec/types"
 	"github.com/irisnet/core-sdk-go/types"
 	"github.com/irisnet/core-sdk-go/types/query"
 )
 
 type Client struct {
-	//CoreSdk sdk.Client todo?
 	types.EncodingConfig
 	types.BaseClient
 }
 
 func NewClient(baseClient types.BaseClient, encodingConfig types.EncodingConfig) Client {
 	tibcClient := &Client{
-		//CoreSdk:   coreClient, todo?
 		BaseClient:     baseClient,
 		EncodingConfig: encodingConfig,
 	}
@@ -38,6 +36,7 @@ func (c Client) RegisterInterfaceTypes(registry cryptotypes.InterfaceRegistry) {
 	tendermint.RegisterInterfaces(registry)
 	tibctypes.RegisterInterfaces(registry)
 	tibcnft.RegisterInterfaces(registry)
+	tibcbsc.RegisterInterfaces(registry)
 }
 
 func (c Client) Name() string {
@@ -51,7 +50,6 @@ func (c Client) GetClientState(chainName string) (tibctypes.ClientState, tibctyp
 		ChainName: chainName,
 	}
 	conn, err := c.GenConn()
-	//conn, err := c.CoreSdk.GenConn()
 	if err != nil {
 		return clientState, tibctypes.ErrChainConn
 	}
@@ -75,8 +73,6 @@ func (c Client) GetClientState(chainName string) (tibctypes.ClientState, tibctyp
 func (c Client) GetClientStates() ([]tibctypes.ClientState, tibctypes.IError) {
 	in := &client.QueryClientStatesRequest{}
 	conn, err := c.GenConn()
-
-	//conn, err := c.CoreSdk.GenConn()
 	if err != nil {
 		return nil, tibctypes.ErrChainConn
 	}
@@ -104,8 +100,6 @@ func (c Client) GetConsensusState(chainName string, height uint64) (tibctypes.Co
 		RevisionHeight: height,
 	}
 	conn, err := c.GenConn()
-
-	//conn, err := c.CoreSdk.GenConn()
 	if err != nil {
 		return nil, tibctypes.ErrChainConn
 	}
@@ -133,8 +127,6 @@ func (c Client) GetConsensusStates(chainName string) ([]tibctypes.ConsensusState
 		ChainName: chainName,
 	}
 	conn, err := c.GenConn()
-
-	//conn, err := c.CoreSdk.GenConn()
 	if err != nil {
 		return nil, tibctypes.ErrChainConn
 	}
@@ -162,8 +154,6 @@ func (c Client) Relayers(chainName string) ([]string, tibctypes.IError) {
 		ChainName: chainName,
 	}
 	conn, err := c.GenConn()
-
-	//conn, err := c.CoreSdk.GenConn()
 	if err != nil {
 		return nil, tibctypes.ErrChainConn
 	}
@@ -181,8 +171,6 @@ func (c Client) Relayers(chainName string) ([]string, tibctypes.IError) {
 
 func (c Client) UpdateClient(req tibctypes.UpdateClientRequest, baseTx types.BaseTx) (types.ResultTx, tibctypes.IError) {
 	owner, err := c.QueryAddress(baseTx.From, baseTx.Password)
-
-	//owner, err := c.CoreSdk.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
 		return types.ResultTx{}, err.(tibctypes.IError)
 	}
@@ -198,7 +186,6 @@ func (c Client) UpdateClient(req tibctypes.UpdateClientRequest, baseTx types.Bas
 		Signer: owner.String(),
 	}
 	resultTx, err := c.BuildAndSend([]types.Msg{msg}, baseTx)
-	//resultTx, err := c.CoreSdk.BuildAndSend([]types.Msg{msg}, baseTx)
 	if err != nil {
 		return types.ResultTx{}, tibctypes.ErrUpdateClient
 	}
@@ -212,8 +199,6 @@ func (c Client) PacketCommitment(destChain string, sourceChain string, sequence 
 		Sequence:    sequence,
 	}
 	conn, err := c.GenConn()
-
-	//conn, err := c.CoreSdk.GenConn()
 	if err != nil {
 		return nil, tibctypes.ErrChainConn
 	}
@@ -225,7 +210,6 @@ func (c Client) PacketCommitment(destChain string, sourceChain string, sequence 
 		return nil, tibctypes.ErrGetCommitmentPacket
 	}
 	return req1, nil
-	//return req1, tibctypes.ErrGetCommitmentPacket
 }
 
 func (c Client) PacketCommitments(destChain string, sourceChain string, Pagination *query.PageRequest) (*packet.QueryPacketCommitmentsResponse, tibctypes.IError) {
@@ -235,8 +219,6 @@ func (c Client) PacketCommitments(destChain string, sourceChain string, Paginati
 		Pagination:  Pagination,
 	}
 	conn, err := c.GenConn()
-
-	//conn, err := c.CoreSdk.GenConn()
 	if err != nil {
 		return nil, tibctypes.ErrChainConn
 	}
@@ -257,8 +239,6 @@ func (c Client) PacketReceipt(destChain string, sourceChain string, sequence uin
 		Sequence:    sequence,
 	}
 	conn, err := c.GenConn()
-
-	//conn, err := c.CoreSdk.GenConn()
 	if err != nil {
 		return nil, tibctypes.ErrChainConn
 	}
@@ -278,8 +258,6 @@ func (c Client) PacketAcknowledgement(destChain string, sourceChain string, sequ
 		Sequence:    sequence,
 	}
 	conn, err := c.GenConn()
-
-	//conn, err := c.CoreSdk.GenConn()
 	if err != nil {
 		return nil, tibctypes.ErrChainConn
 	}
@@ -299,7 +277,6 @@ func (c Client) PacketAcknowledgements(destChain string, sourceChain string, Pag
 		Pagination:  Pagination,
 	}
 	conn, err := c.GenConn()
-	//conn, err := c.CoreSdk.GenConn()
 	if err != nil {
 		return nil, tibctypes.ErrChainConn
 	}
@@ -319,8 +296,6 @@ func (c Client) UnreceivedPackets(destChain string, sourceChain string, packetCo
 		PacketCommitmentSequences: packetCommitmentSequences,
 	}
 	conn, err := c.GenConn()
-
-	//conn, err := c.CoreSdk.GenConn()
 	if err != nil {
 		return nil, tibctypes.ErrChainConn
 	}
@@ -341,8 +316,6 @@ func (c Client) UnreceivedAcks(destChain string, sourceChain string, packetAckSe
 		PacketAckSequences: packetAckSequences,
 	}
 	conn, err := c.GenConn()
-
-	//conn, err := c.CoreSdk.GenConn()
 	if err != nil {
 		return nil, tibctypes.ErrChainConn
 	}
@@ -357,8 +330,6 @@ func (c Client) UnreceivedAcks(destChain string, sourceChain string, packetAckSe
 }
 func (c Client) RecvPackets(msgs []types.Msg, baseTx types.BaseTx) (types.ResultTx, tibctypes.IError) {
 	txreq, err := c.BuildAndSend(msgs, baseTx)
-
-	//txreq, err := c.CoreSdk.BuildAndSend(msgs, baseTx)
 	if err != nil {
 		return types.ResultTx{}, tibctypes.ErrRecvPacket
 	}
@@ -367,8 +338,6 @@ func (c Client) RecvPackets(msgs []types.Msg, baseTx types.BaseTx) (types.Result
 
 func (c Client) RecvPacket(proof []byte, pack packet.Packet, height int64, revisionNumber uint64, baseTx types.BaseTx) (types.ResultTx, tibctypes.IError) {
 	owner, err := c.QueryAddress(baseTx.From, baseTx.Password)
-
-	//owner, err := c.CoreSdk.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
 		return types.ResultTx{}, err.(tibctypes.IError)
 	}
@@ -382,8 +351,6 @@ func (c Client) RecvPacket(proof []byte, pack packet.Packet, height int64, revis
 		Signer: owner.String(),
 	}
 	txreq, err := c.BuildAndSend([]types.Msg{msg}, baseTx)
-
-	//txreq, err := c.CoreSdk.BuildAndSend([]types.Msg{msg}, baseTx)
 	if err != nil {
 		return types.ResultTx{}, tibctypes.ErrRecvPacket
 	}
@@ -392,8 +359,6 @@ func (c Client) RecvPacket(proof []byte, pack packet.Packet, height int64, revis
 
 func (c Client) Acknowledgement(proof []byte, acknowledgement []byte, pack packet.Packet, height int64, revisionNumber uint64, baseTx types.BaseTx) (types.ResultTx, tibctypes.IError) {
 	owner, err := c.QueryAddress(baseTx.From, baseTx.Password)
-
-	//owner, err := c.CoreSdk.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
 		return types.ResultTx{}, err.(tibctypes.IError)
 	}
@@ -408,8 +373,6 @@ func (c Client) Acknowledgement(proof []byte, acknowledgement []byte, pack packe
 		Signer: owner.String(),
 	}
 	txreq, err := c.BuildAndSend([]types.Msg{msg}, baseTx)
-
-	//txreq, err := c.CoreSdk.BuildAndSend([]types.Msg{msg}, baseTx)
 	if err != nil {
 		return types.ResultTx{}, tibctypes.ErrSendAckPacket
 	}
@@ -418,8 +381,6 @@ func (c Client) Acknowledgement(proof []byte, acknowledgement []byte, pack packe
 
 func (c Client) CleanPacket(cleanPacket packet.CleanPacket, baseTx types.BaseTx) (types.ResultTx, tibctypes.IError) {
 	owner, err := c.QueryAddress(baseTx.From, baseTx.Password)
-
-	//owner, err := c.CoreSdk.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
 		return types.ResultTx{}, err.(tibctypes.IError)
 	}
@@ -428,8 +389,6 @@ func (c Client) CleanPacket(cleanPacket packet.CleanPacket, baseTx types.BaseTx)
 		Signer:      owner.String(),
 	}
 	txreq, err := c.BuildAndSend([]types.Msg{msg}, baseTx)
-
-	//txreq, err := c.CoreSdk.BuildAndSend([]types.Msg{msg}, baseTx)
 	if err != nil {
 		return types.ResultTx{}, tibctypes.ErrSendCleanPacket
 	}
@@ -438,8 +397,6 @@ func (c Client) CleanPacket(cleanPacket packet.CleanPacket, baseTx types.BaseTx)
 
 func (c Client) RecvCleanPacket(proof []byte, pack packet.CleanPacket, height int64, revisionNumber uint64, baseTx types.BaseTx) (types.ResultTx, tibctypes.IError) {
 	owner, err := c.QueryAddress(baseTx.From, baseTx.Password)
-
-	//owner, err := c.CoreSdk.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
 		return types.ResultTx{}, err.(tibctypes.IError)
 	}
@@ -454,8 +411,6 @@ func (c Client) RecvCleanPacket(proof []byte, pack packet.CleanPacket, height in
 		Signer: owner.String(),
 	}
 	txreq, err := c.BuildAndSend([]types.Msg{msg}, baseTx)
-
-	//txreq, err := c.CoreSdk.BuildAndSend([]types.Msg{msg}, baseTx)
 	if err != nil {
 		return types.ResultTx{}, tibctypes.ErrRecvCleanPacket
 	}
@@ -464,8 +419,6 @@ func (c Client) RecvCleanPacket(proof []byte, pack packet.CleanPacket, height in
 
 func (c Client) NftTransfer(class, id, receiver, destChainName, realayChainName string, baseTx types.BaseTx) (types.ResultTx, tibctypes.IError) {
 	owner, err := c.QueryAddress(baseTx.From, baseTx.Password)
-
-	//owner, err := c.CoreSdk.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
 		return types.ResultTx{}, err.(tibctypes.IError)
 	}
@@ -478,8 +431,6 @@ func (c Client) NftTransfer(class, id, receiver, destChainName, realayChainName 
 		RealayChain: realayChainName,
 	}
 	txreq, err := c.BuildAndSend([]types.Msg{msg}, baseTx)
-
-	//txreq, err := c.CoreSdk.BuildAndSend([]types.Msg{msg}, baseTx)
 	if err != nil {
 		return types.ResultTx{}, tibctypes.ErrNftTransfer
 	}

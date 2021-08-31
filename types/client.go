@@ -8,7 +8,6 @@ import (
 type ClientState interface {
 	proto.Message
 
-	GetChainId() string
 	ClientType() string
 	GetLatestHeight() Height
 	Validate() error
