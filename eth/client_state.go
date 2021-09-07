@@ -1,4 +1,4 @@
-package bsc
+package eth
 
 import (
 	commitmenttypes "github.com/bianjieai/tibc-sdk-go/commitment"
@@ -8,7 +8,7 @@ import (
 var _ tibctypes.ClientState = (*ClientState)(nil)
 
 func (m ClientState) ClientType() string {
-	return "008-bsc"
+	return "009-eth"
 }
 
 func (m ClientState) GetLatestHeight() tibctypes.Height {
@@ -20,11 +20,13 @@ func (m ClientState) Validate() error {
 }
 
 func (m ClientState) GetDelayTime() uint64 {
-	return uint64(2*len(m.Validators)/3+1) * m.BlockInteval
+	//todo ? add delaytime
+	return 0
 }
 
 func (m ClientState) GetDelayBlock() uint64 {
-	return uint64(2*len(m.Validators)/3 + 1)
+	//todo ? add delayblock
+	return 0
 }
 
 func (m ClientState) GetPrefix() tibctypes.Prefix {
