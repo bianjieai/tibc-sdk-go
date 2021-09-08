@@ -102,9 +102,7 @@ func updateEthClientTest(sourceClient Client, chainName, keyName string) {
 	rc := NewRestClient()
 	height := lightClientState.GetLatestHeight()
 	ethHeader, err1 := GetEthNodeHeader(rc, ethurl, height.GetRevisionHeight()+1)
-
-	fmt.Println(ethHeader.ToHeader().Height.RevisionHeight)
-
+	//fmt.Println(ethHeader.ToHeader().Height.RevisionHeight)
 	if err1 != nil {
 		fmt.Println("GetEthNodeHeader fail :", err1, lightClientState)
 		return

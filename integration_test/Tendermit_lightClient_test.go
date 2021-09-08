@@ -83,7 +83,10 @@ func Test_integrationClientTen(t *testing.T) {
 		fmt.Println(err.Codespace(), err.Code(), err.Error())
 		return
 	}
-	updateEthClientTest(clientC, "ethclient", keyName2)
+	for i := 1; i <= 300; i++ {
+		updateEthClientTest(clientC, "ethclient", keyName2)
+		fmt.Println("    seq : ", i)
+	}
 
 	//updateAllCient(clientA, clientB, clientC)
 	//getETHjson(clientA.Tendermint)
