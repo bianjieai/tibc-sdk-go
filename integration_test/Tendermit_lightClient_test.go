@@ -83,9 +83,8 @@ func Test_integrationClientTen(t *testing.T) {
 		fmt.Println(err.Codespace(), err.Code(), err.Error())
 		return
 	}
-	for i := 1; i <= 300; i++ {
+	for {
 		updateEthClientTest(clientC, "ethclient", keyName2)
-		fmt.Println("    seq : ", i)
 	}
 
 	//updateAllCient(clientA, clientB, clientC)
@@ -198,7 +197,7 @@ func getIntegrationClient(nodeURI, grpcAddr, chainID, keyName, password, keyStor
 	//}
 	options := []types.Option{
 		types.KeyDAOOption(store.NewMemory(nil)),
-		types.TimeoutOption(10),
+		types.TimeoutOption(30),
 		types.KeyManagerOption(crypto.NewKeyManager()),
 		types.BIP44PathOption(""),
 		types.FeeOption(feeCoin),
