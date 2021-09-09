@@ -5,8 +5,6 @@ go 1.15
 require (
 	github.com/DataDog/zstd v1.4.5 // indirect
 	github.com/confio/ics23/go v0.6.6
-	github.com/cosmos/go-bip39 v1.0.0 // indirect
-	github.com/cosmos/iavl v0.16.0 // indirect
 	github.com/dgraph-io/ristretto v0.0.3 // indirect
 	github.com/dgryski/go-farm v0.0.0-20200201041132-a6ae2369ad13 // indirect
 	github.com/ethereum/go-ethereum v1.10.7

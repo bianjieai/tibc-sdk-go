@@ -3,6 +3,8 @@ package integration
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
+	"os"
 
 	tibc "github.com/bianjieai/tibc-sdk-go"
 	tibcclient "github.com/bianjieai/tibc-sdk-go/client"
@@ -32,6 +34,33 @@ func getClientStates(client tibc.Client) {
 		fmt.Println(value.String())
 	}
 }
+func getheader(client Client, height int64, trustHeight tibcclient.Height, clientState tibctypes.ClientState) {
+	res, err := client.QueryBlock(height)
+	if err != nil {
+		fmt.Println("QueryBlock fail:  ", err)
+	}
+	tmHeader := res.Block.Header
+
+	rescommit, err := client.Commit(context.Background(), &res.BlockResult.Height)
+	commit := rescommit.Commit
+	signedHeader := &tenderminttypes.SignedHeader{
+		Header: tmHeader.ToProto(),
+		Commit: commit.ToProto(),
+	}
+	fmtheader := &tendermint.Header{
+		SignedHeader:      signedHeader,
+		ValidatorSet:      queryValidatorSet(height, client.Tendermint),
+		TrustedHeight:     trustHeight,
+		TrustedValidators: queryValidatorSet(int64(clientState.GetLatestHeight().GetRevisionHeight()), client.Tendermint),
+	}
+	b0, err := client.Tendermint.Marshaler.MarshalJSON(fmtheader)
+	if err != nil {
+		panic(err)
+	}
+	b0 = []byte(TenStaType + string(b0)[1:])
+	clientStateName := tmHeader.ChainID + "_client_header.json"
+	err = ioutil.WriteFile(clientStateName, b0, os.ModeAppend)
+}
 
 func getConsensusState(client tibc.Client, clientName string, height uint64) {
 	consensusState1, err := client.GetConsensusState(clientName, height)
@@ -55,10 +84,46 @@ func getConsensusStates(client tibc.Client) {
 	}
 }
 
-//destClient tibc.Client,
-func updatetendetmintclientTest(sourceClient Client, destClient Client, chainName, keyname string) {
+func updateEthClientTest(sourceClient Client, chainName, keyName string) {
 	baseTx := types.BaseTx{
-		From:               keyname,
+		From:               keyName,
+		Gas:                0,
+		Memo:               "TEST",
+		Mode:               types.Commit,
+		Password:           "12345678",
+		SimulateAndExecute: false,
+		GasAdjustment:      1.5,
+	}
+	lightClientState, err := sourceClient.Tendermint.GetClientState(chainName)
+	if err != nil {
+		fmt.Println("GetClientState fail :", err, lightClientState)
+		return
+	}
+	rc := NewRestClient()
+	height := lightClientState.GetLatestHeight()
+	ethHeader, err1 := GetEthNodeHeader(rc, ethurl, height.GetRevisionHeight()+1)
+	if err1 != nil {
+		fmt.Println("GetEthNodeHeader fail :", err1, lightClientState)
+		return
+	}
+	header := ethHeader.ToHeader()
+	request := tibctypes.UpdateClientRequest{
+		ChainName: chainName,
+		Header:    &header,
+	}
+	fmt.Println("run : update client ", sourceClient.ChainName, ".", chainName, "start height : ", height)
+	_, err = sourceClient.Tendermint.UpdateClient(request, baseTx)
+	if err != nil {
+		fmt.Println("UpdateClient fail :", err)
+		return
+	}
+	fmt.Println(" success : update client ", sourceClient.ChainName, ".", chainName, "end height : ", header.Height.RevisionHeight)
+}
+
+//destClient tibc.Client,
+func updatetendetmintclientTest(sourceClient Client, destClient Client, chainName, keyName string) {
+	baseTx := types.BaseTx{
+		From:               keyName,
 		Gas:                0,
 		Memo:               "TEST",
 		Mode:               types.Commit,
@@ -105,6 +170,23 @@ func CreateTenderrmintHeader(client Client, height int64, trustHeight tibcclient
 		Header: tmHeader.ToProto(),
 		Commit: commit.ToProto(),
 	}
+	// print header json
+	//ehdaer := tendermint.Header{
+	//	SignedHeader:      signedHeader,
+	//	ValidatorSet:      queryValidatorSet(height, client.Tendermint),
+	//	TrustedHeight:     trustHeight,
+	//	TrustedValidators: queryValidatorSet(int64(clientState.GetLatestHeight().GetRevisionHeight()), client.Tendermint),
+	//}
+	//
+	//b0, err := json.Marshal(ehdaer)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//
+	//b0 = []byte(TenStaType + string(b0)[1:])
+	//clientStateName := "client_header.json"
+	//err = ioutil.WriteFile(clientStateName, b0, os.ModeAppend)
+
 	return &tendermint.Header{
 		SignedHeader:      signedHeader,
 		ValidatorSet:      queryValidatorSet(height, client.Tendermint),
@@ -153,11 +235,12 @@ func updatebscclientTest(sourceClient Client, destchainUrl, chainName, keyname s
 		ChainName: chainName,
 		Header:    &header,
 	}
-	fmt.Println("run : update client ", sourceClient.ChainName, ".", chainName)
+	fmt.Println("run : update client ", sourceClient.ChainName, ".", chainName, "start height : ", header.Height.RevisionHeight)
 	_, err = sourceClient.Tendermint.UpdateClient(request, baseTx)
 	if err != nil {
 		fmt.Println("UpdateClient fail :", err)
 		return
 	}
-	fmt.Println(" success : update client ", sourceClient.ChainName, ".", chainName)
+	fmt.Println(" success : update client ", sourceClient.ChainName, ".", chainName, "end height : ", header.Height.RevisionHeight+1)
+
 }

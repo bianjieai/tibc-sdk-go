@@ -7,6 +7,7 @@ import (
 	tibcbsc "github.com/bianjieai/tibc-sdk-go/bsc"
 	"github.com/bianjieai/tibc-sdk-go/client"
 	commitmenttypes "github.com/bianjieai/tibc-sdk-go/commitment"
+	tibceth "github.com/bianjieai/tibc-sdk-go/eth"
 	"github.com/bianjieai/tibc-sdk-go/packet"
 	"github.com/bianjieai/tibc-sdk-go/tendermint"
 	tibcnft "github.com/bianjieai/tibc-sdk-go/types"
@@ -37,6 +38,7 @@ func (c Client) RegisterInterfaceTypes(registry cryptotypes.InterfaceRegistry) {
 	tibctypes.RegisterInterfaces(registry)
 	tibcnft.RegisterInterfaces(registry)
 	tibcbsc.RegisterInterfaces(registry)
+	tibceth.RegisterInterfaces(registry)
 }
 
 func (c Client) Name() string {

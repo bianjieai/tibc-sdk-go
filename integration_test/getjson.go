@@ -13,6 +13,8 @@ import (
 	"strings"
 	"time"
 
+	tibceth "github.com/bianjieai/tibc-sdk-go/eth"
+
 	tibc "github.com/bianjieai/tibc-sdk-go"
 	tibcbsc "github.com/bianjieai/tibc-sdk-go/bsc"
 	tibcclient "github.com/bianjieai/tibc-sdk-go/client"
@@ -27,9 +29,12 @@ const (
 	TenStaType = "{\"@type\":\"/tibc.lightclients.tendermint.v1.ClientState\","
 	BscConType = "{\"@type\":\"/tibc.lightclients.bsc.v1.ConsensusState\","
 	BscStaType = "{\"@type\":\"/tibc.lightclients.bsc.v1.ClientState\","
+	EthConType = "{\"@type\":\"/tibc.lightclients.eth.v1.ConsensusState\","
+	EthStaType = "{\"@type\":\"/tibc.lightclients.eth.v1.ClientState\","
 )
 
 const (
+	ethurl         = "https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161"
 	mainurl        = "https://bsc-dataseed1.binance.org"
 	testneturl     = "https://data-seed-prebsc-1-s1.binance.org:8545/"
 	epoch          = uint64(200)
@@ -172,7 +177,54 @@ func getBSCjson(client tibc.Client) {
 	if err != nil {
 		return
 	}
+}
 
+func getETHjson(client tibc.Client) {
+	rc := NewRestClient()
+	height, err := GetBlockHeight(rc, ethurl)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	genesisHeight := height - height%epoch - 2*epoch
+	header, err := GetEthNodeHeader(rc, ethurl, genesisHeight)
+	//validators, err := tibcbsc.ParseValidators(header.Extra)
+	number := tibcclient.NewHeight(0, header.Number.Uint64())
+	clientState := tibceth.ClientState{
+		Header:          header.ToHeader(),
+		ChainId:         TestnetChainId,
+		ContractAddress: []byte("0x00"),
+		TrustingPeriod:  200,
+		TimeDelay:       0,
+		BlockDelay:      7,
+	}
+
+	consensusState := tibceth.ConsensusState{
+		Timestamp: header.Time,
+		Number:    number,
+		Root:      header.Root[:],
+		Header:    header.ToHeader(),
+	}
+	b0, err := client.Marshaler.MarshalJSON(&clientState)
+	if err != nil {
+		panic(err)
+	}
+	b0 = []byte(BscStaType + string(b0)[1:])
+	clientStateName := "eth_client_state.json"
+	err = ioutil.WriteFile(clientStateName, b0, os.ModeAppend)
+	if err != nil {
+		return
+	}
+	b1, err := client.Marshaler.MarshalJSON(&consensusState)
+	if err != nil {
+		panic(err)
+	}
+	b1 = []byte(BscConType + string(b1)[1:])
+	clientConsensusStateName := "eth_consensus_state.json"
+	err = ioutil.WriteFile(clientConsensusStateName, b1, os.ModeAppend)
+	if err != nil {
+		return
+	}
 }
 
 type heightReq struct {
@@ -299,5 +351,54 @@ func GetNodeHeader(restClient *RestClient, url string, height uint64) (*tibcbsc.
 		Extra:       header.Extra,
 		MixDigest:   header.MixDigest,
 		Nonce:       tibcbsc.BlockNonce(header.Nonce),
+	}, nil
+}
+func GetEthNodeHeader(restClient *RestClient, url string, height uint64) (*tibceth.EthHeader, error) {
+	params := []interface{}{fmt.Sprintf("0x%x", height), true}
+	req := &blockReq{
+		JsonRpc: "2.0",
+		Method:  "eth_getBlockByNumber",
+		Params:  params,
+		Id:      1,
+	}
+	reqdata, err := json.Marshal(req)
+	if err != nil {
+		return nil, fmt.Errorf("GetNodeHeight: marshal req err: %s", err)
+	}
+	rspdata, err := restClient.SendRestRequest(url, reqdata)
+	if err != nil {
+		return nil, fmt.Errorf("GetNodeHeight err: %s", err)
+	}
+	rsp := &blockRsp{}
+	err = json.Unmarshal(rspdata, rsp)
+	if err != nil {
+		return nil, fmt.Errorf("GetNodeHeight, unmarshal resp err: %s", err)
+	}
+	if rsp.Error != nil {
+		return nil, fmt.Errorf("GetNodeHeight, return error: %s", rsp.Error.Message)
+	}
+
+	if rsp.Result == nil {
+		return nil, errors.New("GetNodeHeight, no result")
+	}
+
+	header := rsp.Result
+	return &tibceth.EthHeader{
+		ParentHash:  header.ParentHash,
+		UncleHash:   header.UncleHash,
+		Coinbase:    header.Coinbase,
+		Root:        header.Root,
+		TxHash:      header.TxHash,
+		ReceiptHash: header.ReceiptHash,
+		Bloom:       header.Bloom,
+		Difficulty:  header.Difficulty,
+		Number:      header.Number,
+		GasLimit:    header.GasLimit,
+		GasUsed:     header.GasUsed,
+		Time:        header.Time,
+		Extra:       header.Extra,
+		MixDigest:   header.MixDigest,
+		Nonce:       header.Nonce,
+		BaseFee:     header.BaseFee,
 	}, nil
 }
