@@ -8,7 +8,7 @@ import (
 var _ tibctypes.ClientState = (*ClientState)(nil)
 
 func (m ClientState) ClientType() string {
-	return "009-eth"
+	return "010-eth"
 }
 
 func (m ClientState) GetLatestHeight() tibctypes.Height {
@@ -20,11 +20,11 @@ func (m ClientState) Validate() error {
 }
 
 func (m ClientState) GetDelayTime() uint64 {
-	return 0
+	return m.TimeDelay
 }
 
 func (m ClientState) GetDelayBlock() uint64 {
-	return 0
+	return m.BlockDelay
 }
 
 func (m ClientState) GetPrefix() tibctypes.Prefix {

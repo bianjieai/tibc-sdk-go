@@ -195,6 +195,8 @@ func getETHjson(client tibc.Client) {
 		ChainId:         TestnetChainId,
 		ContractAddress: []byte("0x00"),
 		TrustingPeriod:  200,
+		TimeDelay:       0,
+		BlockDelay:      7,
 	}
 
 	consensusState := tibceth.ConsensusState{
