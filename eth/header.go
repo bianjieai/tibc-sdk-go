@@ -1,16 +1,14 @@
 package eth
 
 import (
-	fmt "fmt"
+	"fmt"
 	"math/big"
 	"time"
 
-	"github.com/ethereum/go-ethereum/core/types"
-
 	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
-
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/consensus"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/params"
 )
 
@@ -54,7 +52,7 @@ func (h Header) ValidateBasic() error {
 	// Ensure that the block's difficulty is meaningful (may not be correct at this point)
 	number := h.Height.RevisionHeight
 	if number > 0 {
-		if h.Difficulty == 0 { //todo !
+		if h.Difficulty == 0 {
 			return tibctypes.Wrap(ErrInvalidLengthEth, "header Difficulty")
 		}
 	}

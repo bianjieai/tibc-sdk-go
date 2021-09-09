@@ -20,12 +20,10 @@ func (m ClientState) Validate() error {
 }
 
 func (m ClientState) GetDelayTime() uint64 {
-	//todo ? add delaytime
 	return 0
 }
 
 func (m ClientState) GetDelayBlock() uint64 {
-	//todo ? add delayblock
 	return 0
 }
 
