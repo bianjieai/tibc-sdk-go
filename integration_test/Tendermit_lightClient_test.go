@@ -19,15 +19,15 @@ const (
 	password0 = "12345678"
 	keyStore0 = `-----BEGIN TENDERMINT PRIVATE KEY-----
 kdf: bcrypt
-salt: 3823352403F3B83C71DC32A04BC72B54
+salt: 0CDF9AFE4EF0002010ABD3E01CBAE7E8
 type: secp256k1
 
-d9EsZANuTcqPETSFbK1A8leVZopyP4hJ58iojC4Ob8tkp07EgqJuDps52zIEaJpm
-iBfDOTLg1REK42bKoRs1+uJ2Bl3Z8/HkkwWdmSo=
-=VIyW
+BNeeN1PaoRmu8jjpqA2X2EjwP6I+j02tTxU1/Z3kCijd04CV/0C28IJ3DTX/d0vN
+kZkaKvjE995Gamdow95b872Sen0IyFP6FXdTbis=
+=qpfu
 -----END TENDERMINT PRIVATE KEY-----`
 	chainALightClientName = "testCreateClientA"
-	addressA              = "cosmos1h07pjtuszwz5jt0g62lmlx86pk80wvw8heqhhm"
+	addressA              = "iaa12z75qgsrn26cs99gvu2fq44p3ehezwdzt4durm"
 )
 
 const (
@@ -68,6 +68,7 @@ Reo/ka7X9Va2hySLE4yqoOx0jjZn9LILs1mXCuqpqM/tTJm02oDxiQ7B+xbEOSbr
 )
 
 func Test_integrationClientTen(t *testing.T) {
+
 	clientA, err := getIntegrationClient(nodeURI0, grpcAddr0, chainID0, keyName0, password0, keyStore0, chainALightClientName)
 	if err != nil {
 		fmt.Println(err.Codespace(), err.Code(), err.Error(), clientA)
@@ -95,11 +96,14 @@ func Test_integrationClientTen(t *testing.T) {
 	}
 	amount := types.DecCoins{deccoin}
 	resu, err := clientA.Bank.Send("cosmos1mzzl97r8zkst5rgz2fyja99f3m9wh50hxg0ct9", amount, baseTx)
+
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
+
 	fmt.Println(resu)
+
 }
 
 func Test_integrationClientBsc(t *testing.T) {
