@@ -19,15 +19,15 @@ const (
 	password0 = "12345678"
 	keyStore0 = `-----BEGIN TENDERMINT PRIVATE KEY-----
 kdf: bcrypt
-salt: 0CDF9AFE4EF0002010ABD3E01CBAE7E8
+salt: 3823352403F3B83C71DC32A04BC72B54
 type: secp256k1
 
-BNeeN1PaoRmu8jjpqA2X2EjwP6I+j02tTxU1/Z3kCijd04CV/0C28IJ3DTX/d0vN
-kZkaKvjE995Gamdow95b872Sen0IyFP6FXdTbis=
-=qpfu
+d9EsZANuTcqPETSFbK1A8leVZopyP4hJ58iojC4Ob8tkp07EgqJuDps52zIEaJpm
+iBfDOTLg1REK42bKoRs1+uJ2Bl3Z8/HkkwWdmSo=
+=VIyW
 -----END TENDERMINT PRIVATE KEY-----`
 	chainALightClientName = "testCreateClientA"
-	addressA              = "iaa12z75qgsrn26cs99gvu2fq44p3ehezwdzt4durm"
+	addressA              = "cosmos1h07pjtuszwz5jt0g62lmlx86pk80wvw8heqhhm"
 )
 
 const (
@@ -68,38 +68,38 @@ Reo/ka7X9Va2hySLE4yqoOx0jjZn9LILs1mXCuqpqM/tTJm02oDxiQ7B+xbEOSbr
 )
 
 func Test_integrationClientTen(t *testing.T) {
-	//clientA, err := getIntegrationClient(nodeURI0, grpcAddr0, chainID0, keyName0, password0, keyStore0, chainALightClientName)
-	//if err != nil {
-	//	fmt.Println(err.Codespace(), err.Code(), err.Error())
-	//	return
-	//}
-	//clientB, err := getIntegrationClient(nodeURI1, grpcAddr1, chainID1, keyName1, password1, keyStore1, chainBLightClientName)
-	//if err != nil {
-	//	fmt.Println(err.Codespace(), err.Code(), err.Error())
-	//	return
-	//}
-	clientC, err := getIntegrationClient(nodeURI2, grpcAddr2, chainID2, keyName2, password2, keyStore2, chainCLightClientName)
+	clientA, err := getIntegrationClient(nodeURI0, grpcAddr0, chainID0, keyName0, password0, keyStore0, chainALightClientName)
 	if err != nil {
-		fmt.Println(err.Codespace(), err.Code(), err.Error())
+		fmt.Println(err.Codespace(), err.Code(), err.Error(), clientA)
 		return
 	}
-	for {
-		updateEthClientTest(clientC, "ethclient", keyName2)
+	address, err := clientA.QueryAddress(keyName0, password0)
+	if err != nil {
+		fmt.Println(err)
+		return
 	}
-
-	//updateAllCient(clientA, clientB, clientC)
-	//getETHjson(clientA.Tendermint)
-	//cleanPacket(clientA,clientB,1,keyName0)
-	//recvCleanPacket(clientA,clientB,keyName1,"1ECE3853D71E786198CD7241BF774E281BFB5DD1CDF3704FE8C4ADCB0E400DC6")
-
-	//single jump A to B then return
-	//nftAtoB(clientA, clientB, clientC)
-	//nftBReturntoA(clientA, clientB, clientC)
-
-	//double jump B to C  (relayer A) then return
-	//nftBtoC(clientA, clientB, clientC)
-	//nftCReturntoB(clientA, clientB, clientC)
-
+	fmt.Println(address)
+	baseTx := types.BaseTx{
+		From:               keyName0,
+		Gas:                0,
+		Memo:               "TEST",
+		Mode:               types.Commit,
+		Password:           "12345678",
+		SimulateAndExecute: false,
+		GasAdjustment:      1.5,
+	}
+	dec := types.NewDec(1000)
+	deccoin := types.DecCoin{
+		Denom:  "stake",
+		Amount: dec,
+	}
+	amount := types.DecCoins{deccoin}
+	resu, err := clientA.Bank.Send("cosmos1mzzl97r8zkst5rgz2fyja99f3m9wh50hxg0ct9", amount, baseTx)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(resu)
 }
 
 func Test_integrationClientBsc(t *testing.T) {
