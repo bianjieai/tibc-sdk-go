@@ -192,7 +192,7 @@ func getETHjson(client tibc.Client) {
 	number := tibcclient.NewHeight(0, header.Number.Uint64())
 	clientState := tibceth.ClientState{
 		Header:          header.ToHeader(),
-		ChainId:         TestnetChainId,
+		ChainId:         1,
 		ContractAddress: []byte("0x00"),
 		TrustingPeriod:  200,
 		TimeDelay:       0,
@@ -209,7 +209,7 @@ func getETHjson(client tibc.Client) {
 	if err != nil {
 		panic(err)
 	}
-	b0 = []byte(BscStaType + string(b0)[1:])
+	b0 = []byte(EthStaType + string(b0)[1:])
 	clientStateName := "eth_client_state.json"
 	err = ioutil.WriteFile(clientStateName, b0, os.ModeAppend)
 	if err != nil {
@@ -219,7 +219,7 @@ func getETHjson(client tibc.Client) {
 	if err != nil {
 		panic(err)
 	}
-	b1 = []byte(BscConType + string(b1)[1:])
+	b1 = []byte(EthConType + string(b1)[1:])
 	clientConsensusStateName := "eth_consensus_state.json"
 	err = ioutil.WriteFile(clientConsensusStateName, b1, os.ModeAppend)
 	if err != nil {
