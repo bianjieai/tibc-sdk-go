@@ -8,63 +8,8 @@ import (
 	"github.com/bianjieai/tibc-sdk-go/packet"
 	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
 	"github.com/irisnet/core-sdk-go/types"
-	"github.com/irisnet/irismod-sdk-go/nft"
 )
 
-func nftTransfer(sourceClient Client, keyname, class, id, receiver, destChainName, realayChainName string) (string, tibctypes.IError) {
-	baseTx := types.BaseTx{
-		From:               keyname,
-		Gas:                0,
-		Memo:               "TEST",
-		Mode:               types.Commit,
-		Password:           "12345678",
-		SimulateAndExecute: false,
-		GasAdjustment:      1.5,
-	}
-
-	_, err := sourceClient.NFT.QueryDenom(class)
-	if err != nil {
-		issue := nft.IssueDenomRequest{
-			ID:     class,
-			Name:   "testdenom",
-			Schema: "{\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"}}}",
-		}
-
-		txreq, err := sourceClient.NFT.IssueDenom(issue, baseTx)
-		if err != nil {
-			return "", tibctypes.New("nfterror", 0, "error issuedenom")
-		}
-		fmt.Println(txreq)
-	} else {
-		fmt.Println("denom : ", class, "  already exist,so jump to mint nft ")
-	}
-	_, err = sourceClient.NFT.QueryNFT(class, id)
-	if err != nil {
-		nftRequest := nft.MintNFTRequest{
-			Denom:     class,
-			ID:        id,
-			URI:       "https://test.com",
-			Data:      "{\"name\":\"test denombname\"}",
-			Name:      "",
-			Recipient: "",
-		}
-		txreq, err := sourceClient.NFT.MintNFT(nftRequest, baseTx)
-		if err != nil {
-			return "", tibctypes.New("nfterror", 1, "error mint nft")
-		}
-		fmt.Println(txreq)
-	} else {
-		fmt.Println("nft : ", id, "  already exist,so jump to  nft transfer")
-	}
-
-	txres, err := sourceClient.Tendermint.NftTransfer(class, id, receiver, destChainName, realayChainName, baseTx)
-	if err != nil {
-		return "", tibctypes.New("nfterror", 2, "error nft transfer")
-	}
-	fmt.Println(txres)
-	return txres.Hash, nil
-
-}
 func queryCommitment(client tibc.Client, destName string, sourceName string, seq uint64) *packet.QueryPacketCommitmentResponse {
 	res, err := client.PacketCommitment(destName, sourceName, seq)
 	if err != nil {

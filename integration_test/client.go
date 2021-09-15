@@ -11,7 +11,6 @@ import (
 	"github.com/irisnet/core-sdk-go/staking"
 	"github.com/irisnet/core-sdk-go/types"
 	txtypes "github.com/irisnet/core-sdk-go/types/tx"
-	"github.com/irisnet/irismod-sdk-go/nft"
 )
 
 type Client struct {
@@ -20,7 +19,6 @@ type Client struct {
 	Bank       bank.Client
 	Staking    staking.Client
 	Gov        gov.Client
-	NFT        nft.Client
 	Tendermint tibc.Client
 	ChainName  string
 }
@@ -32,7 +30,6 @@ func NewClient(cfg types.ClientConfig, chainName string) Client {
 	bankClient := bank.NewClient(baseClient, encodingConfig.Marshaler)
 	stakingClient := staking.NewClient(baseClient, encodingConfig.Marshaler)
 	govClient := gov.NewClient(baseClient, encodingConfig.Marshaler)
-	nftClient := nft.NewClient(baseClient, encodingConfig.Marshaler)
 	tendermint := tibc.NewClient(baseClient, encodingConfig)
 
 	client := &Client{
@@ -41,7 +38,6 @@ func NewClient(cfg types.ClientConfig, chainName string) Client {
 		Bank:           bankClient,
 		Staking:        stakingClient,
 		Gov:            govClient,
-		NFT:            nftClient,
 		Tendermint:     tendermint,
 		ChainName:      chainName,
 	}
@@ -50,7 +46,6 @@ func NewClient(cfg types.ClientConfig, chainName string) Client {
 		bankClient,
 		stakingClient,
 		govClient,
-		nftClient,
 	)
 	return *client
 }

@@ -12,7 +12,6 @@ require (
 	github.com/golang/protobuf v1.5.2
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/irisnet/core-sdk-go v0.0.0-20210817104504-bd2c112847e9
-	github.com/irisnet/irismod-sdk-go/nft v0.0.0-20210810032454-3ae775c15f1e
 	github.com/magiconair/properties v1.8.5 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.10.0 // indirect
