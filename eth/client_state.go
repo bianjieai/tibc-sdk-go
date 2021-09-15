@@ -8,7 +8,7 @@ import (
 var _ tibctypes.ClientState = (*ClientState)(nil)
 
 func (m ClientState) ClientType() string {
-	return "010-eth"
+	return "009-eth"
 }
 
 func (m ClientState) GetLatestHeight() tibctypes.Height {

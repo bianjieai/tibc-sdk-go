@@ -2,15 +2,31 @@ package integration
 
 import (
 	"fmt"
-	"testing"
-	"time"
-
 	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
 	"github.com/irisnet/core-sdk-go/common/crypto"
 	"github.com/irisnet/core-sdk-go/types"
 	"github.com/irisnet/core-sdk-go/types/store"
+	"testing"
 )
 
+const (
+	nodeURIiris  = "tcp://sentry-1.mainnet.irisnet.org:26657"
+	grpcAddriris = "sentry-1.mainnet.irisnet.org:9090"
+	chainIDiris  = "testA"
+	keyNameiris  = "chainANode0"
+	passwordiris = "12345678"
+	keyStoreiris = `-----BEGIN TENDERMINT PRIVATE KEY-----
+kdf: bcrypt
+salt: 0CDF9AFE4EF0002010ABD3E01CBAE7E8
+type: secp256k1
+
+BNeeN1PaoRmu8jjpqA2X2EjwP6I+j02tTxU1/Z3kCijd04CV/0C28IJ3DTX/d0vN
+kZkaKvjE995Gamdow95b872Sen0IyFP6FXdTbis=
+=qpfu
+-----END TENDERMINT PRIVATE KEY-----`
+	chainirisLightClientName = "testCreateClientA"
+	addressiris              = "iaa12z75qgsrn26cs99gvu2fq44p3ehezwdzt4durm"
+)
 const (
 	nodeURI0  = "tcp://192.168.232.133:26657"
 	grpcAddr0 = "192.168.232.133:9090"
@@ -49,23 +65,32 @@ lknIkHf36F6t06zwzYb3+ReT8cQeowsgHwOS7c8=
 	addressB              = "iaa1twsrmhpmg6rkc6l5r7rcanxeelhylxlnsw6g0l"
 )
 const (
-	nodeURI2  = "tcp://192.168.232.140:26657"
-	grpcAddr2 = "192.168.232.140:9090"
+	nodeURI2  = "tcp://192.168.47.128:26657"
+	grpcAddr2 = "192.168.47.128:9090"
 	chainID2  = "testC"
 	keyName2  = "chainCNode0"
 	password2 = "12345678"
 	keyStore2 = `-----BEGIN TENDERMINT PRIVATE KEY-----
-type: secp256k1
 kdf: bcrypt
-salt: 202B62B4E71F2EEC9B8386CAEC2B5BD2
+salt: AA6711769B1862B00F24BE3A52E21AA8
+type: secp256k1
 
-Reo/ka7X9Va2hySLE4yqoOx0jjZn9LILs1mXCuqpqM/tTJm02oDxiQ7B+xbEOSbr
-0nAstU3hEsYEreMg7ihO+7dK0ufXEx8JEbnTIHU=
-=wiwf
+h2N+FyIkP4ajJxoPHMi8Sm/bsTb7bkkpjKq3M+/m9EbeHh297ezgtbR0S1UP40y0
+Rkw5YDP21pxbcgC2yCgyEOncHly1tIui8fkJKho=
+=L9VU
 -----END TENDERMINT PRIVATE KEY-----`
 	chainCLightClientName = "testCreateClientC"
 	addressC              = "iaa10nfdefym9vg7c288fm4790833ee5f4p0g8w3ej"
 )
+
+func Test_GetIrisNetJson(t *testing.T) {
+	irisClient, err := getIntegrationClient(nodeURIiris, grpcAddriris, chainIDiris, keyNameiris, passwordiris, keyStoreiris, chainALightClientName)
+	if err != nil {
+		fmt.Println(err.Codespace(), err.Code(), err.Error(), irisClient)
+		return
+	}
+	getTendermintjson(irisClient.Tendermint, 11762491)
+}
 
 func Test_integrationClientTen(t *testing.T) {
 
@@ -124,64 +149,19 @@ func Test_integrationClientBsc(t *testing.T) {
 	}
 }
 
-func nftAtoB(clientA, clientB, clientC Client) {
-	fmt.Println("testnftTransfer: (A to B)")
-	txhash, err := nftTransfer(clientA, keyName0, "atobtestclass", "atobtestid", addressB, chainBLightClientName, "")
+func Test_integrationClientETH(t *testing.T) {
+	clientC, err := getIntegrationClient(nodeURI2, grpcAddr2, chainID2, keyName2, password2, keyStore2, chainCLightClientName)
 	if err != nil {
-		fmt.Println(err.Codespace(), err.Code(), err.Error())
+		fmt.Println(err.Codespace(), err.Code(), err.Error(), clientC)
 		return
 	}
-	fmt.Println("txhash : ", txhash)
-	time.Sleep(time.Second * 5)
-	updateAllCient(clientA, clientB, clientC)
-
-	fmt.Println("recv packet")
-	txhash, err = packetRecive(clientA, clientB, keyName1, txhash)
-	if err != nil {
-		fmt.Println(err.Codespace(), err.Code(), err.Error())
-		return
-	}
-	fmt.Println("txhash : ", txhash)
-	time.Sleep(time.Second * 5)
-	updateAllCient(clientA, clientB, clientC)
-
-	fmt.Println("send ack : ")
-	txhash, err = sendAck(clientA, clientB, keyName0, txhash)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-	fmt.Println("txhash : ", txhash)
+	updateEthClientTest(clientC, "ethclient", keyName2)
+	//for i := 1; i < 500; i++ {
+	//	fmt.Println("----------------------------------")
+	//	updateEthClientTest(clientC, "ethclient", keyName2)
+	//}
 }
-func nftBReturntoA(clientA, clientB, clientC Client) {
-	fmt.Println("testnftTransfer: (nft B Return to A)")
-	txhash, err := nftTransfer(clientB, keyName1, "tibc/nft/testCreateClientA/atobtestclass", "atobtestid", addressA, chainALightClientName, "")
-	if err != nil {
-		fmt.Println(err.Codespace(), err.Code(), err.Error())
-		return
-	}
-	fmt.Println("txhash : ", txhash)
-	time.Sleep(time.Second * 5)
-	updateAllCient(clientA, clientB, clientC)
 
-	fmt.Println("recv packet")
-	txhash, err = packetRecive(clientB, clientA, keyName0, txhash)
-	if err != nil {
-		fmt.Println(err.Codespace(), err.Code(), err.Error())
-		return
-	}
-	fmt.Println("txhash : ", txhash)
-	time.Sleep(time.Second * 5)
-	updateAllCient(clientA, clientB, clientC)
-
-	fmt.Println("send ack : ")
-	txhash, err = sendAck(clientB, clientA, keyName1, txhash)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-	fmt.Println("txhash : ", txhash)
-}
 func updateAllCient(clientA, clientB, clientC Client) {
 	updatetendetmintclientTest(clientA, clientB, chainBLightClientName, keyName0)
 	updatetendetmintclientTest(clientA, clientC, chainCLightClientName, keyName0)
@@ -216,106 +196,4 @@ func getIntegrationClient(nodeURI, grpcAddr, chainID, keyName, password, keyStor
 		return Client{}, tibctypes.New("importkey", 0, "error import key")
 	}
 	return client, nil
-}
-
-func nftBtoC(clientA, clientB, clientC Client) {
-	fmt.Println("testnftTransfer: (B to C)")
-	txhash, err := nftTransfer(clientB, keyName1, "btoctestclass", "btoctestid", addressC, chainCLightClientName, chainALightClientName)
-	if err != nil {
-		fmt.Println(err.Codespace(), err.Code(), err.Error())
-		return
-	}
-	fmt.Println("txhash : ", txhash)
-	time.Sleep(time.Second * 5)
-	updateAllCient(clientA, clientB, clientC)
-
-	fmt.Println("recv packet1")
-	txhash, err = packetRecive(clientB, clientA, keyName0, txhash)
-	if err != nil {
-		fmt.Println(err.Codespace(), err.Code(), err.Error())
-		return
-	}
-	fmt.Println("txhash : ", txhash)
-	time.Sleep(time.Second * 5)
-	updateAllCient(clientA, clientB, clientC)
-
-	fmt.Println("recv packet2")
-	txhash, err = packetRecive(clientA, clientC, keyName2, txhash)
-	if err != nil {
-		fmt.Println(err.Codespace(), err.Code(), err.Error())
-		return
-	}
-	fmt.Println("txhash : ", txhash)
-	time.Sleep(time.Second * 5)
-	updateAllCient(clientA, clientB, clientC)
-
-	fmt.Println("send ack1 : ")
-	txhash, err = sendAck(clientA, clientC, keyName0, txhash)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-	fmt.Println("txhash : ", txhash)
-	time.Sleep(time.Second * 5)
-	updateAllCient(clientA, clientB, clientC)
-
-	fmt.Println("send ack2 : ")
-	txhash, err = sendAck(clientB, clientA, keyName1, txhash)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-	fmt.Println("txhash : ", txhash)
-}
-
-func nftCReturntoB(clientA, clientB, clientC Client) {
-
-	fmt.Println("testnftTransfer: (C to B)")
-	txhash, err := nftTransfer(clientC, keyName2, "tibc/nft/testCreateClientB/btoctestclass", "btoctestid", addressB, chainBLightClientName, chainALightClientName)
-	if err != nil {
-		fmt.Println(err.Codespace(), err.Code(), err.Error())
-		return
-	}
-	fmt.Println("txhash : ", txhash)
-	time.Sleep(time.Second * 5)
-	updateAllCient(clientA, clientB, clientC)
-
-	fmt.Println("recv packet1")
-	txhash, err = packetRecive(clientC, clientA, keyName0, txhash)
-	if err != nil {
-		fmt.Println(err.Codespace(), err.Code(), err.Error())
-		return
-	}
-	fmt.Println("txhash : ", txhash)
-	time.Sleep(time.Second * 5)
-	updateAllCient(clientA, clientB, clientC)
-
-	fmt.Println("recv packet2")
-	txhash, err = packetRecive(clientA, clientB, keyName1, txhash)
-	if err != nil {
-		fmt.Println(err.Codespace(), err.Code(), err.Error())
-		return
-	}
-	fmt.Println("txhash : ", txhash)
-	time.Sleep(time.Second * 5)
-	updateAllCient(clientA, clientB, clientC)
-
-	fmt.Println("send ack1 : ")
-	txhash, err = sendAck(clientA, clientB, keyName0, txhash)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-	fmt.Println("txhash : ", txhash)
-	time.Sleep(time.Second * 5)
-	updateAllCient(clientA, clientB, clientC)
-
-	fmt.Println("send ack2 : ")
-	txhash, err = sendAck(clientC, clientA, keyName2, txhash)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	}
-	fmt.Println("txhash : ", txhash)
-
 }
