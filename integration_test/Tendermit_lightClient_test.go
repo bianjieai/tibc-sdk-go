@@ -1,12 +1,14 @@
 package integration
 
 import (
+	"context"
 	"fmt"
+	"testing"
+
 	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
 	"github.com/irisnet/core-sdk-go/common/crypto"
 	"github.com/irisnet/core-sdk-go/types"
 	"github.com/irisnet/core-sdk-go/types/store"
-	"testing"
 )
 
 const (
@@ -17,15 +19,33 @@ const (
 	passwordiris = "12345678"
 	keyStoreiris = `-----BEGIN TENDERMINT PRIVATE KEY-----
 kdf: bcrypt
-salt: 0CDF9AFE4EF0002010ABD3E01CBAE7E8
-type: secp256k1
+salt: 3DD1ADDB1389FD5F06010321A9FB8230
+type: sm2
 
-BNeeN1PaoRmu8jjpqA2X2EjwP6I+j02tTxU1/Z3kCijd04CV/0C28IJ3DTX/d0vN
-kZkaKvjE995Gamdow95b872Sen0IyFP6FXdTbis=
-=qpfu
+1wD0rJf9qu0MMVPGqpo/fXa5VynSajIyskmhJLAkjMsWc2ssO5tSNQ0ENgTbGZbp
+I6OtbT8H4FBJEH/g4aopJ+9l+zSGogNrylXlDD8=
+=+MfP
 -----END TENDERMINT PRIVATE KEY-----`
 	chainirisLightClientName = "testCreateClientA"
 	addressiris              = "iaa12z75qgsrn26cs99gvu2fq44p3ehezwdzt4durm"
+)
+const (
+	nodeURIlocal  = "tcp://localhost:26657"
+	grpcAddrlocal = "localhost:9090"
+	chainIDlocal  = "testC"
+	keyNamelocal  = "chainCNode0"
+	passwordlocal = "12345678"
+	keyStorelocal = `-----BEGIN TENDERMINT PRIVATE KEY-----
+kdf: bcrypt
+salt: F248AB34AE4BED4B4A5DD10E34C8BAFA
+type: secp256k1
+
+xqzXVX8JXYQWj/aJmH3hNfEqlO3IAM35C+oXkys02KfXcHZm+LDBVTRUFpONV3iB
+C8FzpKaS8W69qqXhNP2sLBtHrGIk8L3T0wAVM3Q=
+=2BeH
+-----END TENDERMINT PRIVATE KEY-----`
+	chainlocalLightClientName = "testCreateClientC"
+	addresslocal              = "iaa10nfdefym9vg7c288fm4790833ee5f4p0g8w3ej"
 )
 const (
 	nodeURI0  = "tcp://192.168.232.133:26657"
@@ -83,13 +103,21 @@ Rkw5YDP21pxbcgC2yCgyEOncHly1tIui8fkJKho=
 	addressC              = "iaa10nfdefym9vg7c288fm4790833ee5f4p0g8w3ej"
 )
 
+func Test_LocalTest(t *testing.T) {
+	localClient, err := getIntegrationClient(nodeURIlocal, grpcAddrlocal, chainIDlocal, keyNamelocal, passwordlocal, keyStorelocal, chainlocalLightClientName)
+	if err != nil {
+		fmt.Println(err.Codespace(), err.Code(), err.Error(), localClient)
+		return
+	}
+	fmt.Println(localClient.Status(context.Background()))
+}
 func Test_GetIrisNetJson(t *testing.T) {
 	irisClient, err := getIntegrationClient(nodeURIiris, grpcAddriris, chainIDiris, keyNameiris, passwordiris, keyStoreiris, chainALightClientName)
 	if err != nil {
 		fmt.Println(err.Codespace(), err.Code(), err.Error(), irisClient)
 		return
 	}
-	getTendermintjson(irisClient.Tendermint, 11762491)
+	//getTendermintjson(irisClient.Tendermint, 11762491)
 }
 
 func Test_integrationClientTen(t *testing.T) {
@@ -181,7 +209,7 @@ func getIntegrationClient(nodeURI, grpcAddr, chainID, keyName, password, keyStor
 	//}
 	options := []types.Option{
 		types.KeyDAOOption(store.NewMemory(nil)),
-		types.TimeoutOption(30),
+		types.TimeoutOption(3000),
 		types.KeyManagerOption(crypto.NewKeyManager()),
 		types.BIP44PathOption(""),
 		types.FeeOption(feeCoin),

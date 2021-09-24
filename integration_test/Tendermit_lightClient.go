@@ -101,7 +101,7 @@ func updateEthClientTest(sourceClient Client, chainName, keyName string) {
 	}
 	rc := NewRestClient()
 	height := lightClientState.GetLatestHeight()
-	ethHeader, err1 := GetEthNodeHeader(rc, ethurl, height.GetRevisionHeight()+1)
+	ethHeader, err1 := GetEthNodeHeader(rc, ethurl, height.GetRevisionHeight())
 	if err1 != nil {
 		fmt.Println("GetEthNodeHeader fail :", err1, lightClientState)
 		return
@@ -111,7 +111,7 @@ func updateEthClientTest(sourceClient Client, chainName, keyName string) {
 		ChainName: chainName,
 		Header:    &header,
 	}
-	fmt.Println("run : update client ", sourceClient.ChainName, ".", chainName, "start height : ", height)
+	fmt.Println("run : update client ", sourceClient.ChainName, ".", chainName, "start height : ", height, "want height:", height.GetRevisionHeight())
 	_, err = sourceClient.Tendermint.UpdateClient(request, baseTx)
 	if err != nil {
 		fmt.Println("UpdateClient fail :", err)
@@ -197,11 +197,14 @@ func CreateTenderrmintHeader(client Client, height int64, trustHeight tibcclient
 }
 
 func queryValidatorSet(height int64, client tibc.Client) *tenderminttypes.ValidatorSet {
-	validators, err := client.Validators(context.Background(), &height, nil, nil)
+	page := 1
+	prepage := 200
+	validators, err := client.Validators(context.Background(), &height, &page, &prepage)
 	if err != nil {
 		fmt.Println("queryValidatorSet fail :", err)
 	}
-	validatorSet, err := tmtypes.NewValidatorSet(validators.Validators).ToProto()
+	fmt.Println(len(validators.Validators))
+	validatorSet, err := tmtypes.NewValidatorSet(validators.Validators[:20]).ToProto()
 	if err != nil {
 		fmt.Println("queryValidatorSet fail :", err)
 	}

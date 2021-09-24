@@ -3,6 +3,7 @@ package integration
 import (
 	"context"
 	"crypto/tls"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,12 +14,13 @@ import (
 	"strings"
 	"time"
 
-	tibceth "github.com/bianjieai/tibc-sdk-go/eth"
+	tenderminttypes "github.com/tendermint/tendermint/proto/tendermint/types"
 
 	tibc "github.com/bianjieai/tibc-sdk-go"
 	tibcbsc "github.com/bianjieai/tibc-sdk-go/bsc"
 	tibcclient "github.com/bianjieai/tibc-sdk-go/client"
 	"github.com/bianjieai/tibc-sdk-go/commitment"
+	tibceth "github.com/bianjieai/tibc-sdk-go/eth"
 	"github.com/bianjieai/tibc-sdk-go/tendermint"
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	tmtypes "github.com/tendermint/tendermint/types"
@@ -46,7 +48,6 @@ const (
 //"@type":"/tibc.lightclients.tendermint.v1.ClientState",
 //"@type":"/tibc.lightclients.tendermint.v1.ConsensusState",
 func getTendermintjson(client tibc.Client, height int64) {
-
 	//ClientState
 	var fra = tendermint.Fraction{
 		Numerator:   1,
@@ -57,6 +58,27 @@ func getTendermintjson(client tibc.Client, height int64) {
 		fmt.Println("QueryBlock fail:  ", err)
 	}
 	tmHeader := res.Block.Header
+	rescommit, err := client.Commit(context.Background(), &res.BlockResult.Height)
+	if err != nil {
+		fmt.Println("QueryBlock fail:  ", err)
+	}
+	commit := rescommit.Commit
+	signedHeader := &tenderminttypes.SignedHeader{
+		Header: tmHeader.ToProto(),
+		Commit: commit.ToProto(),
+	}
+	var tendermintheader = tendermint.Header{
+		SignedHeader:      signedHeader,
+		ValidatorSet:      queryValidatorSet(height, client),
+		TrustedHeight:     tibcclient.NewHeight(0, 11762490),
+		TrustedValidators: queryValidatorSet(11762490, client),
+	}
+	marshal2, err := tendermintheader.Marshal()
+	if err != nil {
+		return
+	}
+	fmt.Println(hex.EncodeToString(marshal2))
+
 	lastHeight := tibcclient.NewHeight(0, 4)
 	var clientstate = &tendermint.ClientState{
 		ChainId:         tmHeader.ChainID,
@@ -75,6 +97,17 @@ func getTendermintjson(client tibc.Client, height int64) {
 		Root:               commitment.NewMerkleRoot([]byte("app_hash")),
 		NextValidatorsHash: queryValidatorSet1(res.Block.Height, client).Hash(),
 	}
+
+	marshal, err := clientstate.Marshal()
+	if err != nil {
+		return
+	}
+	fmt.Println(hex.EncodeToString(marshal))
+	marshal1, err := consensusState.Marshal()
+	if err != nil {
+		return
+	}
+	fmt.Println(hex.EncodeToString(marshal1))
 
 	b0, err := client.Marshaler.MarshalJSON(clientstate)
 	if err != nil {
