@@ -59,26 +59,26 @@ func getTendermintjson(client tibc.Client, height int64) {
 		fmt.Println("QueryBlock fail:  ", err)
 	}
 	tmHeader := res.Block.Header
-	rescommit, err := client.Commit(context.Background(), &res.BlockResult.Height)
+	resCommit, err := client.Commit(context.Background(), &res.BlockResult.Height)
 	if err != nil {
 		fmt.Println("QueryBlock fail:  ", err)
 	}
-	commit := rescommit.Commit
+	commit := resCommit.Commit
 	signedHeader := &tenderminttypes.SignedHeader{
 		Header: tmHeader.ToProto(),
 		Commit: commit.ToProto(),
 	}
-	var tendermintheader = tendermint.Header{
+	var tendermintHeader = tendermint.Header{
 		SignedHeader:      signedHeader,
 		ValidatorSet:      queryValidatorSet(height, client),
 		TrustedHeight:     tibcclient.NewHeight(0, 11762490),
 		TrustedValidators: queryValidatorSet(11762490, client),
 	}
-	marshal2, err := tendermintheader.Marshal()
+	tendermintHeaderMarshal, err := tendermintHeader.Marshal()
 	if err != nil {
 		return
 	}
-	fmt.Println(hex.EncodeToString(marshal2))
+	fmt.Println(hex.EncodeToString(tendermintHeaderMarshal))
 
 	lastHeight := tibcclient.NewHeight(0, 4)
 	var clientstate = &tendermint.ClientState{
@@ -163,6 +163,7 @@ func NewRestClient() *RestClient {
 		},
 	}
 }
+
 func getBSCjson(client tibc.Client) {
 	rc := NewRestClient()
 	height, err := GetBlockHeight(rc, testneturl)
@@ -172,7 +173,6 @@ func getBSCjson(client tibc.Client) {
 	}
 	genesisHeight := height - height%epoch - 2*epoch
 	header, err := GetNodeHeader(testneturl, genesisHeight)
-	//validators, err := tibcbsc.ParseValidators(header.Extra)
 	genesisValidatorHeader, err := GetNodeHeader(testneturl, genesisHeight-epoch)
 	genesisValidators, err := tibcbsc.ParseValidators(genesisValidatorHeader.Extra)
 	number := tibcclient.NewHeight(0, header.Number.Uint64())
@@ -212,6 +212,7 @@ func getBSCjson(client tibc.Client) {
 		return
 	}
 }
+
 func getRinkebyETHjson(client tibc.Client) {
 	rc := NewRestClient()
 	height, err := GetBlockHeight(rc, rinkeby)
@@ -221,7 +222,6 @@ func getRinkebyETHjson(client tibc.Client) {
 	}
 	genesisHeight := height - height%epoch - 2*epoch
 	header, err := GetRinkeyEthNodeHeader(rinkeby, genesisHeight)
-	//validators, err := tibcbsc.ParseValidators(header.Extra)
 	number := tibcclient.NewHeight(0, header.Number.Uint64())
 	clientState := tibceth.ClientState{
 		Header:          header.ToHeader(),
@@ -258,6 +258,7 @@ func getRinkebyETHjson(client tibc.Client) {
 		return
 	}
 }
+
 func getETHjson(client tibc.Client) {
 	rc := NewRestClient()
 	height, err := GetBlockHeight(rc, ethurl)
@@ -267,7 +268,6 @@ func getETHjson(client tibc.Client) {
 	}
 	genesisHeight := height - height%epoch - 2*epoch
 	header, err := GetEthNodeHeader(ethurl, genesisHeight)
-	//validators, err := tibcbsc.ParseValidators(header.Extra)
 	number := tibcclient.NewHeight(0, header.Number.Uint64())
 	clientState := tibceth.ClientState{
 		Header:          header.ToHeader(),
@@ -331,6 +331,7 @@ type blockReq struct {
 	Params  []interface{} `json:"params"`
 	Id      uint          `json:"id"`
 }
+
 type blockRsp struct {
 	JsonRPC string           `json:"jsonrpc"`
 	Result  *ethtypes.Header `json:"result,omitempty"`
@@ -339,7 +340,6 @@ type blockRsp struct {
 }
 
 func GetBlockHeight(rc *RestClient, url string) (height uint64, err error) {
-
 	req := &heightReq{
 		JsonRpc: "2.0",
 		Method:  "eth_blockNumber",
@@ -370,6 +370,7 @@ func GetBlockHeight(rc *RestClient, url string) (height uint64, err error) {
 		return height, nil
 	}
 }
+
 func (self *RestClient) SendRestRequest(addr string, data []byte) ([]byte, error) {
 	resp, err := self.restClient.Post(addr, "application/json", strings.NewReader(string(data)))
 	if err != nil {
@@ -408,7 +409,6 @@ func GetNodeHeader(url string, height uint64) (*tibcbsc.BscHeader, error) {
 	if rsp.Error != nil {
 		return nil, fmt.Errorf("GetNodeHeight, return error: %s", rsp.Error.Message)
 	}
-
 	if rsp.Result == nil {
 		return nil, errors.New("GetNodeHeight, no result")
 	}
@@ -432,6 +432,7 @@ func GetNodeHeader(url string, height uint64) (*tibcbsc.BscHeader, error) {
 		Nonce:       tibcbsc.BlockNonce(header.Nonce),
 	}, nil
 }
+
 func GetEthNodeHeader(url string, height uint64) (*tibceth.EthHeader, error) {
 	restClient := NewRestClient()
 	params := []interface{}{fmt.Sprintf("0x%x", height), true}
@@ -523,8 +524,6 @@ func GetRinkeyEthNodeHeader(url string, height uint64) (*tibceth.EthHeader, erro
 	}
 	parenthHeader := rsp1.Result
 	field1 := parenthHeader.Hash()
-	fmt.Println(len(field1))
-	fmt.Println(field1.String())
 	rsp := &blockRsp{}
 	err = json.Unmarshal(rspdata, rsp)
 	if err != nil {
