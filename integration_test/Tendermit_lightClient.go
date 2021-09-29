@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"time"
 
 	tibc "github.com/bianjieai/tibc-sdk-go"
 	tibcclient "github.com/bianjieai/tibc-sdk-go/client"
@@ -84,7 +85,7 @@ func getConsensusStates(client tibc.Client) {
 	}
 }
 
-func updateEthClientTest(sourceClient Client, chainName, keyName string) {
+func updateRinkebyEthClientTest(sourceClient Client, chainName, keyName, url string) {
 	baseTx := types.BaseTx{
 		From:               keyName,
 		Gas:                0,
@@ -99,9 +100,8 @@ func updateEthClientTest(sourceClient Client, chainName, keyName string) {
 		fmt.Println("GetClientState fail :", err, lightClientState)
 		return
 	}
-	rc := NewRestClient()
 	height := lightClientState.GetLatestHeight()
-	ethHeader, err1 := GetEthNodeHeader(rc, ethurl, height.GetRevisionHeight())
+	ethHeader, err1 := GetRinkeyEthNodeHeader(url, height.GetRevisionHeight()+1)
 	if err1 != nil {
 		fmt.Println("GetEthNodeHeader fail :", err1, lightClientState)
 		return
@@ -111,11 +111,51 @@ func updateEthClientTest(sourceClient Client, chainName, keyName string) {
 		ChainName: chainName,
 		Header:    &header,
 	}
-	fmt.Println("run : update client ", sourceClient.ChainName, ".", chainName, "start height : ", height, "want height:", height.GetRevisionHeight())
+	fmt.Println("run : update client ", sourceClient.ChainName, ".", chainName, "start height : ", height, "want height:", height.GetRevisionHeight()+1)
 	_, err = sourceClient.Tendermint.UpdateClient(request, baseTx)
 	if err != nil {
-		fmt.Println("UpdateClient fail :", err)
+		time.Sleep(time.Second * 5)
+	}
+	fmt.Println(" success : update client ", sourceClient.ChainName, ".", chainName, "end height : ", header.Height.RevisionHeight)
+}
+
+func updateEthClientTest(sourceClient Client, chainName, keyName, url string) {
+	baseTx := types.BaseTx{
+		From:               keyName,
+		Gas:                0,
+		Memo:               "TEST",
+		Mode:               types.Commit,
+		Password:           "12345678",
+		SimulateAndExecute: false,
+		GasAdjustment:      1.5,
+	}
+	lightClientState, err := sourceClient.Tendermint.GetClientState(chainName)
+	if err != nil {
+		fmt.Println("GetClientState fail :", err, lightClientState)
 		return
+	}
+	height := lightClientState.GetLatestHeight()
+	ethHeader, err1 := GetEthNodeHeader(url, height.GetRevisionHeight()+1)
+	if err1 != nil {
+		fmt.Println("GetEthNodeHeader fail :", err1, lightClientState)
+		return
+	}
+	header := ethHeader.ToHeader()
+	request := tibctypes.UpdateClientRequest{
+		ChainName: chainName,
+		Header:    &header,
+	}
+	wantHeight := height.GetRevisionHeight() + 1
+	fmt.Println("run : update client ", sourceClient.ChainName, ".", chainName, "start height : ", height, "want height:", wantHeight)
+	_, err = sourceClient.Tendermint.UpdateClient(request, baseTx)
+	if err != nil {
+		time.Sleep(time.Second * 6)
+		lightClientState, _ = sourceClient.Tendermint.GetClientState(chainName)
+		height = lightClientState.GetLatestHeight()
+		if height.GetRevisionHeight() != wantHeight {
+			fmt.Println("update filed")
+			return
+		}
 	}
 	fmt.Println(" success : update client ", sourceClient.ChainName, ".", chainName, "end height : ", header.Height.RevisionHeight)
 }
@@ -226,9 +266,8 @@ func updatebscclientTest(sourceClient Client, destchainUrl, chainName, keyname s
 		fmt.Println("GetClientState fail :", err, lightClientState)
 		return
 	}
-	rc := NewRestClient()
 	height := lightClientState.GetLatestHeight()
-	bscHeader, err1 := GetNodeHeader(rc, destchainUrl, height.GetRevisionHeight()+1)
+	bscHeader, err1 := GetNodeHeader(destchainUrl, height.GetRevisionHeight()+1)
 	if err1 != nil {
 		fmt.Println("GetClientState fail :", err1, lightClientState)
 		return

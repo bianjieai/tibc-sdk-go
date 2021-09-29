@@ -36,6 +36,7 @@ const (
 )
 
 const (
+	rinkeby        = "https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161"
 	ethurl         = "https://mainnet.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161"
 	mainurl        = "https://bsc-dataseed1.binance.org"
 	testneturl     = "https://data-seed-prebsc-1-s1.binance.org:8545/"
@@ -170,9 +171,9 @@ func getBSCjson(client tibc.Client) {
 		return
 	}
 	genesisHeight := height - height%epoch - 2*epoch
-	header, err := GetNodeHeader(rc, testneturl, genesisHeight)
+	header, err := GetNodeHeader(testneturl, genesisHeight)
 	//validators, err := tibcbsc.ParseValidators(header.Extra)
-	genesisValidatorHeader, err := GetNodeHeader(rc, testneturl, genesisHeight-epoch)
+	genesisValidatorHeader, err := GetNodeHeader(testneturl, genesisHeight-epoch)
 	genesisValidators, err := tibcbsc.ParseValidators(genesisValidatorHeader.Extra)
 	number := tibcclient.NewHeight(0, header.Number.Uint64())
 	clientState := tibcbsc.ClientState{
@@ -211,23 +212,22 @@ func getBSCjson(client tibc.Client) {
 		return
 	}
 }
-
-func getETHjson(client tibc.Client) {
+func getRinkebyETHjson(client tibc.Client) {
 	rc := NewRestClient()
-	height, err := GetBlockHeight(rc, ethurl)
+	height, err := GetBlockHeight(rc, rinkeby)
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
 	genesisHeight := height - height%epoch - 2*epoch
-	header, err := GetEthNodeHeader(rc, ethurl, genesisHeight)
+	header, err := GetRinkeyEthNodeHeader(rinkeby, genesisHeight)
 	//validators, err := tibcbsc.ParseValidators(header.Extra)
 	number := tibcclient.NewHeight(0, header.Number.Uint64())
 	clientState := tibceth.ClientState{
 		Header:          header.ToHeader(),
-		ChainId:         1,
+		ChainId:         4,
 		ContractAddress: []byte("0x00"),
-		TrustingPeriod:  200,
+		TrustingPeriod:  200000,
 		TimeDelay:       0,
 		BlockDelay:      7,
 	}
@@ -236,7 +236,52 @@ func getETHjson(client tibc.Client) {
 		Timestamp: header.Time,
 		Number:    number,
 		Root:      header.Root[:],
-		Header:    header.ToHeader(),
+	}
+	b0, err := client.Marshaler.MarshalJSON(&clientState)
+	if err != nil {
+		panic(err)
+	}
+	b0 = []byte(EthStaType + string(b0)[1:])
+	clientStateName := "rinkeby_eth_client_state.json"
+	err = ioutil.WriteFile(clientStateName, b0, os.ModeAppend)
+	if err != nil {
+		return
+	}
+	b1, err := client.Marshaler.MarshalJSON(&consensusState)
+	if err != nil {
+		panic(err)
+	}
+	b1 = []byte(EthConType + string(b1)[1:])
+	clientConsensusStateName := "rinkeby_eth_consensus_state.json"
+	err = ioutil.WriteFile(clientConsensusStateName, b1, os.ModeAppend)
+	if err != nil {
+		return
+	}
+}
+func getETHjson(client tibc.Client) {
+	rc := NewRestClient()
+	height, err := GetBlockHeight(rc, ethurl)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	genesisHeight := height - height%epoch - 2*epoch
+	header, err := GetEthNodeHeader(ethurl, genesisHeight)
+	//validators, err := tibcbsc.ParseValidators(header.Extra)
+	number := tibcclient.NewHeight(0, header.Number.Uint64())
+	clientState := tibceth.ClientState{
+		Header:          header.ToHeader(),
+		ChainId:         1,
+		ContractAddress: []byte("0x00"),
+		TrustingPeriod:  2000000,
+		TimeDelay:       0,
+		BlockDelay:      7,
+	}
+
+	consensusState := tibceth.ConsensusState{
+		Timestamp: header.Time,
+		Number:    number,
+		Root:      header.Root[:],
 	}
 	b0, err := client.Marshaler.MarshalJSON(&clientState)
 	if err != nil {
@@ -338,7 +383,8 @@ func (self *RestClient) SendRestRequest(addr string, data []byte) ([]byte, error
 	return body, nil
 }
 
-func GetNodeHeader(restClient *RestClient, url string, height uint64) (*tibcbsc.BscHeader, error) {
+func GetNodeHeader(url string, height uint64) (*tibcbsc.BscHeader, error) {
+	restClient := NewRestClient()
 	params := []interface{}{fmt.Sprintf("0x%x", height), true}
 	req := &blockReq{
 		JsonRpc: "2.0",
@@ -386,7 +432,8 @@ func GetNodeHeader(restClient *RestClient, url string, height uint64) (*tibcbsc.
 		Nonce:       tibcbsc.BlockNonce(header.Nonce),
 	}, nil
 }
-func GetEthNodeHeader(restClient *RestClient, url string, height uint64) (*tibceth.EthHeader, error) {
+func GetEthNodeHeader(url string, height uint64) (*tibceth.EthHeader, error) {
+	restClient := NewRestClient()
 	params := []interface{}{fmt.Sprintf("0x%x", height), true}
 	req := &blockReq{
 		JsonRpc: "2.0",
@@ -402,6 +449,7 @@ func GetEthNodeHeader(restClient *RestClient, url string, height uint64) (*tibce
 	if err != nil {
 		return nil, fmt.Errorf("GetNodeHeight err: %s", err)
 	}
+
 	rsp := &blockRsp{}
 	err = json.Unmarshal(rspdata, rsp)
 	if err != nil {
@@ -434,4 +482,106 @@ func GetEthNodeHeader(restClient *RestClient, url string, height uint64) (*tibce
 		Nonce:       header.Nonce,
 		BaseFee:     header.BaseFee,
 	}, nil
+}
+
+func GetRinkeyEthNodeHeader(url string, height uint64) (*tibceth.EthHeader, error) {
+	restClient := NewRestClient()
+	params := []interface{}{fmt.Sprintf("0x%x", height), true}
+	req := &blockReq{
+		JsonRpc: "2.0",
+		Method:  "eth_getBlockByNumber",
+		Params:  params,
+		Id:      1,
+	}
+	reqdata, err := json.Marshal(req)
+	if err != nil {
+		return nil, fmt.Errorf("GetNodeHeight: marshal req err: %s", err)
+	}
+	rspdata, err := restClient.SendRestRequest(url, reqdata)
+	if err != nil {
+		return nil, fmt.Errorf("GetNodeHeight err: %s", err)
+	}
+	params1 := []interface{}{fmt.Sprintf("0x%x", height-1), true}
+	req1 := &blockReq{
+		JsonRpc: "2.0",
+		Method:  "eth_getBlockByNumber",
+		Params:  params1,
+		Id:      1,
+	}
+	reqdata1, err := json.Marshal(req1)
+	if err != nil {
+		return nil, fmt.Errorf("GetNodeHeight: marshal req err: %s", err)
+	}
+	rspdata1, err := restClient.SendRestRequest(url, reqdata1)
+	if err != nil {
+		return nil, fmt.Errorf("GetNodeHeight err: %s", err)
+	}
+	rsp1 := &blockRsp{}
+	err = json.Unmarshal(rspdata1, rsp1)
+	if err != nil {
+		return nil, fmt.Errorf("GetNodeHeight, unmarshal resp err: %s", err)
+	}
+	parenthHeader := rsp1.Result
+	field1 := parenthHeader.Hash()
+	fmt.Println(len(field1))
+	fmt.Println(field1.String())
+	rsp := &blockRsp{}
+	err = json.Unmarshal(rspdata, rsp)
+	if err != nil {
+		return nil, fmt.Errorf("GetNodeHeight, unmarshal resp err: %s", err)
+	}
+	if rsp.Error != nil {
+		return nil, fmt.Errorf("GetNodeHeight, return error: %s", rsp.Error.Message)
+	}
+
+	if rsp.Result == nil {
+		return nil, errors.New("GetNodeHeight, no result")
+	}
+	header := rsp.Result
+	header.Extra = append(field1[:], header.Extra...)
+	fmt.Println("hash: ", header.ParentHash, "   height :", header.Number)
+	return &tibceth.EthHeader{
+		ParentHash:  header.ParentHash,
+		UncleHash:   header.UncleHash,
+		Coinbase:    header.Coinbase,
+		Root:        header.Root,
+		TxHash:      header.TxHash,
+		ReceiptHash: header.ReceiptHash,
+		Bloom:       header.Bloom,
+		Difficulty:  header.Difficulty,
+		Number:      header.Number,
+		GasLimit:    header.GasLimit,
+		GasUsed:     header.GasUsed,
+		Time:        header.Time,
+		Extra:       header.Extra,
+		MixDigest:   header.MixDigest,
+		Nonce:       header.Nonce,
+		BaseFee:     header.BaseFee,
+	}, nil
+}
+func getJsonField(bytes []byte, field ...string) []byte {
+	if len(field) < 1 {
+		fmt.Printf("At least two parameters are required.")
+		return nil
+	}
+
+	//将字节切片映射到指定map上  key：string类型，value：interface{}  类型能存任何数据类型
+	var mapObj map[string]interface{}
+	json.Unmarshal(bytes, &mapObj)
+	var tmpObj interface{}
+	tmpObj = mapObj
+	for i := 0; i < len(field); i++ {
+		tmpObj = tmpObj.(map[string]interface{})[field[i]]
+		if tmpObj == nil {
+			fmt.Printf("No field specified: %s ", field[i])
+			return nil
+		}
+	}
+
+	result, err := json.Marshal(tmpObj)
+	if err != nil {
+		fmt.Print(err)
+		return nil
+	}
+	return result
 }

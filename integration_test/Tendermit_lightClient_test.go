@@ -92,17 +92,35 @@ const (
 	password2 = "12345678"
 	keyStore2 = `-----BEGIN TENDERMINT PRIVATE KEY-----
 kdf: bcrypt
-salt: AA6711769B1862B00F24BE3A52E21AA8
+salt: B8113AE06ACB73701FBCA453D7C7AFAB
 type: secp256k1
 
-h2N+FyIkP4ajJxoPHMi8Sm/bsTb7bkkpjKq3M+/m9EbeHh297ezgtbR0S1UP40y0
-Rkw5YDP21pxbcgC2yCgyEOncHly1tIui8fkJKho=
-=L9VU
+brg7lUm30ZDPDhHmSbDFWw+/pMr09rZnnUFYGiBZX2l0kG9t50Q3UkNuqxZYBdd7
+MvIhB6q/n3lFY7gykW1mPi6zD6dZsgIeHK/CknY=
+=6sV2
 -----END TENDERMINT PRIVATE KEY-----`
 	chainCLightClientName = "testCreateClientC"
-	addressC              = "iaa10nfdefym9vg7c288fm4790833ee5f4p0g8w3ej"
+	addressC              = "iaa1zvf654uuamjgecucaeklwsqeqxjguhv26f0n2g"
 )
 
+func Test_updateRinkebyEth(t *testing.T) {
+	clientC, err := getIntegrationClient(nodeURI2, grpcAddr2, chainID2, keyName2, password2, keyStore2, chainCLightClientName)
+	if err != nil {
+		fmt.Println(err.Codespace(), err.Code(), err.Error(), clientC)
+		return
+	}
+	//getRinkebyETHjson(clientC.Tendermint)
+	updateRinkebyEthClientTest(clientC, "rinkebyeth", keyName2, rinkeby)
+}
+
+func Test_getHashLen(t *testing.T) {
+	header, err := GetEthNodeHeader(ethurl, 13287800)
+	if err != nil {
+		return
+	}
+	toHeader := header.ToHeader()
+	fmt.Println(len(toHeader.Hash().Bytes()))
+}
 func Test_LocalTest(t *testing.T) {
 	localClient, err := getIntegrationClient(nodeURIlocal, grpcAddrlocal, chainIDlocal, keyNamelocal, passwordlocal, keyStorelocal, chainlocalLightClientName)
 	if err != nil {
@@ -183,11 +201,11 @@ func Test_integrationClientETH(t *testing.T) {
 		fmt.Println(err.Codespace(), err.Code(), err.Error(), clientC)
 		return
 	}
-	updateEthClientTest(clientC, "ethclient", keyName2)
-	//for i := 1; i < 500; i++ {
-	//	fmt.Println("----------------------------------")
-	//	updateEthClientTest(clientC, "ethclient", keyName2)
-	//}
+	//getETHjson(clientC.Tendermint)
+	//updateEthClientTest(clientC, "ethclient", keyName2, ethurl)
+	for i := 1; i < 50; i++ {
+		updateEthClientTest(clientC, "ethclient", keyName2, ethurl)
+	}
 }
 
 func updateAllCient(clientA, clientB, clientC Client) {

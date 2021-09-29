@@ -52,7 +52,7 @@ func (h Header) ValidateBasic() error {
 	// Ensure that the block's difficulty is meaningful (may not be correct at this point)
 	number := h.Height.RevisionHeight
 	if number > 0 {
-		if h.Difficulty == 0 {
+		if h.ToEthHeader().Difficulty.Uint64() == 0 {
 			return tibctypes.Wrap(ErrInvalidLengthEth, "header Difficulty")
 		}
 	}
@@ -60,6 +60,16 @@ func (h Header) ValidateBasic() error {
 }
 
 func (h Header) ToEthHeader() EthHeader {
+	difficulty := new(big.Int)
+	difficulty, ok := difficulty.SetString(h.Difficulty, 10)
+	if !ok {
+		return EthHeader{}
+	}
+	baseFee := new(big.Int)
+	baseFee, ok = baseFee.SetString(h.BaseFee, 10)
+	if !ok {
+		return EthHeader{}
+	}
 	return EthHeader{
 		ParentHash:  common.BytesToHash(h.ParentHash),
 		UncleHash:   common.BytesToHash(h.UncleHash),
@@ -68,7 +78,7 @@ func (h Header) ToEthHeader() EthHeader {
 		TxHash:      common.BytesToHash(h.TxHash),
 		ReceiptHash: common.BytesToHash(h.ReceiptHash),
 		Bloom:       types.BytesToBloom(h.Bloom),
-		Difficulty:  big.NewInt(int64(h.Difficulty)),
+		Difficulty:  difficulty,
 		Number:      big.NewInt(int64(h.Height.RevisionHeight)),
 		GasLimit:    h.GasLimit,
 		GasUsed:     h.GasUsed,
@@ -76,6 +86,6 @@ func (h Header) ToEthHeader() EthHeader {
 		Extra:       h.Extra,
 		MixDigest:   common.BytesToHash(h.MixDigest),
 		Nonce:       types.EncodeNonce(h.Nonce),
-		BaseFee:     big.NewInt(int64(h.BaseFee)),
+		BaseFee:     baseFee,
 	}
 }
