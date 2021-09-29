@@ -41,7 +41,7 @@ func (h EthHeader) ToHeader() Header {
 		TxHash:      h.TxHash[:],
 		ReceiptHash: h.ReceiptHash[:],
 		Bloom:       h.Bloom[:],
-		Difficulty:  h.Difficulty.Uint64(),
+		Difficulty:  h.Difficulty.String(),
 		Height:      tibcclient.NewHeight(0, h.Number.Uint64()),
 		GasLimit:    h.GasLimit,
 		GasUsed:     h.GasUsed,
@@ -49,7 +49,7 @@ func (h EthHeader) ToHeader() Header {
 		Extra:       h.Extra,
 		MixDigest:   h.MixDigest[:],
 		Nonce:       h.Nonce.Uint64(),
-		BaseFee:     h.BaseFee.Uint64(),
+		BaseFee:     h.BaseFee.String(),
 	}
 }
 
