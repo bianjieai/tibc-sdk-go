@@ -157,7 +157,7 @@ func (c Client) Relayers(chainName string) ([]string, tibctypes.IError) {
 	}
 	conn, err := c.GenConn()
 	if err != nil {
-		return nil, tibctypes.ErrChainConn
+		return nil, tibctypes.IErrorWrap(tibctypes.ErrChainConn,err.Error())
 	}
 
 	relay, err := client.NewQueryClient(conn).Relayers(
@@ -165,7 +165,7 @@ func (c Client) Relayers(chainName string) ([]string, tibctypes.IError) {
 		req,
 	)
 	if err != nil {
-		return nil, tibctypes.ErrGetRelayer
+		return nil, tibctypes.IErrorWrap(tibctypes.ErrGetRelayer,err.Error())
 	}
 
 	return relay.Relayers, nil
@@ -174,11 +174,11 @@ func (c Client) Relayers(chainName string) ([]string, tibctypes.IError) {
 func (c Client) UpdateClient(req tibctypes.UpdateClientRequest, baseTx types.BaseTx) (types.ResultTx, tibctypes.IError) {
 	owner, err := c.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return types.ResultTx{}, err.(tibctypes.IError)
+		return types.ResultTx{}, tibctypes.IErrorWrap(tibctypes.ErrInvalidAddress,err.Error())
 	}
 	res, errs := cryptotypes.NewAnyWithValue(req.Header)
 	if errs != nil {
-		return types.ResultTx{}, tibctypes.ErrPackAny
+		return types.ResultTx{}, tibctypes.IErrorWrap(tibctypes.ErrPackAny,err.Error())
 	}
 	msg := &client.MsgUpdateClient{
 		ChainName: req.ChainName,
@@ -189,7 +189,8 @@ func (c Client) UpdateClient(req tibctypes.UpdateClientRequest, baseTx types.Bas
 	}
 	resultTx, err := c.BuildAndSend([]types.Msg{msg}, baseTx)
 	if err != nil {
-		return types.ResultTx{}, tibctypes.ErrUpdateClient
+
+		return types.ResultTx{}, tibctypes.IErrorWrap(tibctypes.ErrUpdateClient,err.Error())
 	}
 	return resultTx, nil
 }
@@ -202,14 +203,14 @@ func (c Client) PacketCommitment(destChain string, sourceChain string, sequence 
 	}
 	conn, err := c.GenConn()
 	if err != nil {
-		return nil, tibctypes.ErrChainConn
+		return nil, tibctypes.IErrorWrap(tibctypes.ErrChainConn,err.Error())
 	}
 	req1, err := packet.NewQueryClient(conn).PacketCommitment(
 		context.Background(),
 		req,
 	)
 	if err != nil {
-		return nil, tibctypes.ErrGetCommitmentPacket
+		return nil, tibctypes.IErrorWrap(tibctypes.ErrGetCommitmentPacket,err.Error())
 	}
 	return req1, nil
 }
@@ -222,14 +223,14 @@ func (c Client) PacketCommitments(destChain string, sourceChain string, Paginati
 	}
 	conn, err := c.GenConn()
 	if err != nil {
-		return nil, tibctypes.ErrChainConn
+		return nil, tibctypes.IErrorWrap(tibctypes.ErrChainConn,err.Error())
 	}
 	packComms, err := packet.NewQueryClient(conn).PacketCommitments(
 		context.Background(),
 		req,
 	)
 	if err != nil {
-		return nil, tibctypes.ErrGetCommitmentPacket
+		return nil, tibctypes.IErrorWrap(tibctypes.ErrGetCommitmentPacket,err.Error())
 	}
 	return packComms, nil
 }
@@ -242,14 +243,14 @@ func (c Client) PacketReceipt(destChain string, sourceChain string, sequence uin
 	}
 	conn, err := c.GenConn()
 	if err != nil {
-		return nil, tibctypes.ErrChainConn
+		return nil,tibctypes.IErrorWrap(tibctypes.ErrChainConn,err.Error())
 	}
 	receipt, err := packet.NewQueryClient(conn).PacketReceipt(
 		context.Background(),
 		req,
 	)
 	if err != nil {
-		return nil, tibctypes.ErrGetReceiptPacket
+		return nil, tibctypes.IErrorWrap(tibctypes.ErrGetReceiptPacket,err.Error())
 	}
 	return receipt, nil
 }
@@ -261,14 +262,14 @@ func (c Client) PacketAcknowledgement(destChain string, sourceChain string, sequ
 	}
 	conn, err := c.GenConn()
 	if err != nil {
-		return nil, tibctypes.ErrChainConn
+		return nil,tibctypes.IErrorWrap(tibctypes.ErrChainConn,err.Error())
 	}
 	acknowledgement, err := packet.NewQueryClient(conn).PacketAcknowledgement(
 		context.Background(),
 		req,
 	)
 	if err != nil {
-		return nil, tibctypes.ErrGetAckPacket
+		return nil, tibctypes.IErrorWrap(tibctypes.ErrGetAckPacket,err.Error())
 	}
 	return acknowledgement, nil
 }
@@ -280,14 +281,14 @@ func (c Client) PacketAcknowledgements(destChain string, sourceChain string, Pag
 	}
 	conn, err := c.GenConn()
 	if err != nil {
-		return nil, tibctypes.ErrChainConn
+		return nil,tibctypes.IErrorWrap(tibctypes.ErrChainConn,err.Error())
 	}
 	acknowledgements, err := packet.NewQueryClient(conn).PacketAcknowledgements(
 		context.Background(),
 		req,
 	)
 	if err != nil {
-		return nil, tibctypes.ErrGetAckPacket
+		return nil, tibctypes.IErrorWrap(tibctypes.ErrGetAckPacket,err.Error())
 	}
 	return acknowledgements, nil
 }
@@ -299,14 +300,14 @@ func (c Client) UnreceivedPackets(destChain string, sourceChain string, packetCo
 	}
 	conn, err := c.GenConn()
 	if err != nil {
-		return nil, tibctypes.ErrChainConn
+		return nil,tibctypes.IErrorWrap(tibctypes.ErrChainConn,err.Error())
 	}
 	unreceivedPackets, err := packet.NewQueryClient(conn).UnreceivedPackets(
 		context.Background(),
 		req,
 	)
 	if err != nil {
-		return nil, tibctypes.ErrGetUnreceivedPacket
+		return nil, tibctypes.IErrorWrap(tibctypes.ErrGetUnreceivedPacket,err.Error())
 	}
 	return unreceivedPackets, nil
 }
@@ -319,21 +320,21 @@ func (c Client) UnreceivedAcks(destChain string, sourceChain string, packetAckSe
 	}
 	conn, err := c.GenConn()
 	if err != nil {
-		return nil, tibctypes.ErrChainConn
+		return nil,tibctypes.IErrorWrap(tibctypes.ErrChainConn,err.Error())
 	}
 	unreceivedAcks, err := packet.NewQueryClient(conn).UnreceivedAcks(
 		context.Background(),
 		req,
 	)
 	if err != nil {
-		return nil, tibctypes.ErrGetUnreceivedPacket
+		return nil, tibctypes.IErrorWrap(tibctypes.ErrGetUnreceivedPacket,err.Error())
 	}
 	return unreceivedAcks, nil
 }
 func (c Client) RecvPackets(msgs []types.Msg, baseTx types.BaseTx) (types.ResultTx, tibctypes.IError) {
 	txreq, err := c.BuildAndSend(msgs, baseTx)
 	if err != nil {
-		return types.ResultTx{}, tibctypes.ErrRecvPacket
+		return types.ResultTx{},tibctypes.IErrorWrap(tibctypes.ErrRecvPacket,err.Error())
 	}
 	return txreq, nil
 }
@@ -341,7 +342,7 @@ func (c Client) RecvPackets(msgs []types.Msg, baseTx types.BaseTx) (types.Result
 func (c Client) RecvPacket(proof []byte, pack packet.Packet, height int64, revisionNumber uint64, baseTx types.BaseTx) (types.ResultTx, tibctypes.IError) {
 	owner, err := c.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return types.ResultTx{}, err.(tibctypes.IError)
+		return types.ResultTx{}, tibctypes.IErrorWrap(tibctypes.ErrInvalidAddress,err.Error())
 	}
 	msg := &packet.MsgRecvPacket{
 		Packet:          pack,
@@ -354,7 +355,7 @@ func (c Client) RecvPacket(proof []byte, pack packet.Packet, height int64, revis
 	}
 	txreq, err := c.BuildAndSend([]types.Msg{msg}, baseTx)
 	if err != nil {
-		return types.ResultTx{}, tibctypes.ErrRecvPacket
+		return types.ResultTx{},tibctypes.IErrorWrap(tibctypes.ErrRecvPacket,err.Error())
 	}
 	return txreq, nil
 }
@@ -362,7 +363,7 @@ func (c Client) RecvPacket(proof []byte, pack packet.Packet, height int64, revis
 func (c Client) Acknowledgement(proof []byte, acknowledgement []byte, pack packet.Packet, height int64, revisionNumber uint64, baseTx types.BaseTx) (types.ResultTx, tibctypes.IError) {
 	owner, err := c.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return types.ResultTx{}, err.(tibctypes.IError)
+		return types.ResultTx{}, tibctypes.IErrorWrap(tibctypes.ErrInvalidAddress,err.Error())
 	}
 	msg := &packet.MsgAcknowledgement{
 		Packet:          pack,
@@ -376,7 +377,7 @@ func (c Client) Acknowledgement(proof []byte, acknowledgement []byte, pack packe
 	}
 	txreq, err := c.BuildAndSend([]types.Msg{msg}, baseTx)
 	if err != nil {
-		return types.ResultTx{}, tibctypes.ErrSendAckPacket
+		return types.ResultTx{},tibctypes.IErrorWrap(tibctypes.ErrSendAckPacket,err.Error())
 	}
 	return txreq, nil
 }
@@ -384,7 +385,7 @@ func (c Client) Acknowledgement(proof []byte, acknowledgement []byte, pack packe
 func (c Client) CleanPacket(cleanPacket packet.CleanPacket, baseTx types.BaseTx) (types.ResultTx, tibctypes.IError) {
 	owner, err := c.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return types.ResultTx{}, err.(tibctypes.IError)
+		return types.ResultTx{}, tibctypes.IErrorWrap(tibctypes.ErrInvalidAddress,err.Error())
 	}
 	msg := &packet.MsgCleanPacket{
 		CleanPacket: cleanPacket,
@@ -392,7 +393,7 @@ func (c Client) CleanPacket(cleanPacket packet.CleanPacket, baseTx types.BaseTx)
 	}
 	txreq, err := c.BuildAndSend([]types.Msg{msg}, baseTx)
 	if err != nil {
-		return types.ResultTx{}, tibctypes.ErrSendCleanPacket
+		return types.ResultTx{},tibctypes.IErrorWrap(tibctypes.ErrSendCleanPacket,err.Error())
 	}
 	return txreq, nil
 }
@@ -400,7 +401,7 @@ func (c Client) CleanPacket(cleanPacket packet.CleanPacket, baseTx types.BaseTx)
 func (c Client) RecvCleanPacket(proof []byte, pack packet.CleanPacket, height int64, revisionNumber uint64, baseTx types.BaseTx) (types.ResultTx, tibctypes.IError) {
 	owner, err := c.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return types.ResultTx{}, err.(tibctypes.IError)
+		return types.ResultTx{}, tibctypes.IErrorWrap(tibctypes.ErrInvalidAddress,err.Error())
 	}
 
 	msg := &packet.MsgRecvCleanPacket{
@@ -414,7 +415,7 @@ func (c Client) RecvCleanPacket(proof []byte, pack packet.CleanPacket, height in
 	}
 	txreq, err := c.BuildAndSend([]types.Msg{msg}, baseTx)
 	if err != nil {
-		return types.ResultTx{}, tibctypes.ErrRecvCleanPacket
+		return types.ResultTx{},tibctypes.IErrorWrap(tibctypes.ErrRecvCleanPacket,err.Error())
 	}
 	return txreq, nil
 }
@@ -422,7 +423,7 @@ func (c Client) RecvCleanPacket(proof []byte, pack packet.CleanPacket, height in
 func (c Client) NftTransfer(class, id, receiver, destChainName, realayChainName string, baseTx types.BaseTx) (types.ResultTx, tibctypes.IError) {
 	owner, err := c.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return types.ResultTx{}, err.(tibctypes.IError)
+		return types.ResultTx{}, tibctypes.IErrorWrap(tibctypes.ErrInvalidAddress,err.Error())
 	}
 	msg := &tibcnft.MsgNftTransfer{
 		Class:       class,
@@ -434,7 +435,7 @@ func (c Client) NftTransfer(class, id, receiver, destChainName, realayChainName 
 	}
 	txreq, err := c.BuildAndSend([]types.Msg{msg}, baseTx)
 	if err != nil {
-		return types.ResultTx{}, tibctypes.ErrNftTransfer
+		return types.ResultTx{},tibctypes.IErrorWrap(tibctypes.ErrNftTransfer,err.Error())
 	}
 	return txreq, nil
 }
