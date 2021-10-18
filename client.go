@@ -158,7 +158,7 @@ func (c Client) Relayers(chainName string) ([]string, tibctypes.IError) {
 	}
 	conn, err := c.GenConn()
 	if err != nil {
-		return nil, tibctypes.ErrChainConn
+		return nil, tibctypes.IErrorWrap(tibctypes.ErrChainConn,err.Error())
 	}
 
 	relay, err := client.NewQueryClient(conn).Relayers(
@@ -166,7 +166,7 @@ func (c Client) Relayers(chainName string) ([]string, tibctypes.IError) {
 		req,
 	)
 	if err != nil {
-		return nil, tibctypes.ErrGetRelayer
+		return nil, tibctypes.IErrorWrap(tibctypes.ErrGetRelayer,err.Error())
 	}
 
 	return relay.Relayers, nil
@@ -175,11 +175,12 @@ func (c Client) Relayers(chainName string) ([]string, tibctypes.IError) {
 func (c Client) UpdateClient(req tibctypes.UpdateClientRequest, baseTx types.BaseTx) (ctypes.ResultTx, tibctypes.IError) {
 	owner, err := c.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return ctypes.ResultTx{}, err.(tibctypes.IError)
+    return ctypes.ResultTx{}, err.(tibctypes.IError)
 	}
 	res, errs := cryptotypes.NewAnyWithValue(req.Header)
 	if errs != nil {
 		return ctypes.ResultTx{}, tibctypes.ErrPackAny
+
 	}
 	msg := &client.MsgUpdateClient{
 		ChainName: req.ChainName,
@@ -204,14 +205,14 @@ func (c Client) PacketCommitment(destChain string, sourceChain string, sequence 
 	}
 	conn, err := c.GenConn()
 	if err != nil {
-		return nil, tibctypes.ErrChainConn
+		return nil, tibctypes.IErrorWrap(tibctypes.ErrChainConn,err.Error())
 	}
 	req1, err := packet.NewQueryClient(conn).PacketCommitment(
 		context.Background(),
 		req,
 	)
 	if err != nil {
-		return nil, tibctypes.ErrGetCommitmentPacket
+		return nil, tibctypes.IErrorWrap(tibctypes.ErrGetCommitmentPacket,err.Error())
 	}
 	return req1, nil
 }
@@ -224,14 +225,14 @@ func (c Client) PacketCommitments(destChain string, sourceChain string, Paginati
 	}
 	conn, err := c.GenConn()
 	if err != nil {
-		return nil, tibctypes.ErrChainConn
+		return nil, tibctypes.IErrorWrap(tibctypes.ErrChainConn,err.Error())
 	}
 	packComms, err := packet.NewQueryClient(conn).PacketCommitments(
 		context.Background(),
 		req,
 	)
 	if err != nil {
-		return nil, tibctypes.ErrGetCommitmentPacket
+		return nil, tibctypes.IErrorWrap(tibctypes.ErrGetCommitmentPacket,err.Error())
 	}
 	return packComms, nil
 }
@@ -244,14 +245,14 @@ func (c Client) PacketReceipt(destChain string, sourceChain string, sequence uin
 	}
 	conn, err := c.GenConn()
 	if err != nil {
-		return nil, tibctypes.ErrChainConn
+		return nil,tibctypes.IErrorWrap(tibctypes.ErrChainConn,err.Error())
 	}
 	receipt, err := packet.NewQueryClient(conn).PacketReceipt(
 		context.Background(),
 		req,
 	)
 	if err != nil {
-		return nil, tibctypes.ErrGetReceiptPacket
+		return nil, tibctypes.IErrorWrap(tibctypes.ErrGetReceiptPacket,err.Error())
 	}
 	return receipt, nil
 }
@@ -263,14 +264,14 @@ func (c Client) PacketAcknowledgement(destChain string, sourceChain string, sequ
 	}
 	conn, err := c.GenConn()
 	if err != nil {
-		return nil, tibctypes.ErrChainConn
+		return nil,tibctypes.IErrorWrap(tibctypes.ErrChainConn,err.Error())
 	}
 	acknowledgement, err := packet.NewQueryClient(conn).PacketAcknowledgement(
 		context.Background(),
 		req,
 	)
 	if err != nil {
-		return nil, tibctypes.ErrGetAckPacket
+		return nil, tibctypes.IErrorWrap(tibctypes.ErrGetAckPacket,err.Error())
 	}
 	return acknowledgement, nil
 }
@@ -282,14 +283,14 @@ func (c Client) PacketAcknowledgements(destChain string, sourceChain string, Pag
 	}
 	conn, err := c.GenConn()
 	if err != nil {
-		return nil, tibctypes.ErrChainConn
+		return nil,tibctypes.IErrorWrap(tibctypes.ErrChainConn,err.Error())
 	}
 	acknowledgements, err := packet.NewQueryClient(conn).PacketAcknowledgements(
 		context.Background(),
 		req,
 	)
 	if err != nil {
-		return nil, tibctypes.ErrGetAckPacket
+		return nil, tibctypes.IErrorWrap(tibctypes.ErrGetAckPacket,err.Error())
 	}
 	return acknowledgements, nil
 }
@@ -301,14 +302,14 @@ func (c Client) UnreceivedPackets(destChain string, sourceChain string, packetCo
 	}
 	conn, err := c.GenConn()
 	if err != nil {
-		return nil, tibctypes.ErrChainConn
+		return nil,tibctypes.IErrorWrap(tibctypes.ErrChainConn,err.Error())
 	}
 	unreceivedPackets, err := packet.NewQueryClient(conn).UnreceivedPackets(
 		context.Background(),
 		req,
 	)
 	if err != nil {
-		return nil, tibctypes.ErrGetUnreceivedPacket
+		return nil, tibctypes.IErrorWrap(tibctypes.ErrGetUnreceivedPacket,err.Error())
 	}
 	return unreceivedPackets, nil
 }
@@ -321,14 +322,14 @@ func (c Client) UnreceivedAcks(destChain string, sourceChain string, packetAckSe
 	}
 	conn, err := c.GenConn()
 	if err != nil {
-		return nil, tibctypes.ErrChainConn
+		return nil,tibctypes.IErrorWrap(tibctypes.ErrChainConn,err.Error())
 	}
 	unreceivedAcks, err := packet.NewQueryClient(conn).UnreceivedAcks(
 		context.Background(),
 		req,
 	)
 	if err != nil {
-		return nil, tibctypes.ErrGetUnreceivedPacket
+		return nil, tibctypes.IErrorWrap(tibctypes.ErrGetUnreceivedPacket,err.Error())
 	}
 	return unreceivedAcks, nil
 }
@@ -336,6 +337,7 @@ func (c Client) RecvPackets(msgs []types.Msg, baseTx types.BaseTx) (ctypes.Resul
 	txreq, err := c.BuildAndSend(msgs, baseTx)
 	if err != nil {
 		return ctypes.ResultTx{}, tibctypes.ErrRecvPacket
+
 	}
 	return txreq, nil
 }
@@ -365,6 +367,7 @@ func (c Client) Acknowledgement(proof []byte, acknowledgement []byte, pack packe
 	owner, err := c.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
 		return ctypes.ResultTx{}, err.(tibctypes.IError)
+
 	}
 	msg := &packet.MsgAcknowledgement{
 		Packet:          pack,
@@ -403,6 +406,7 @@ func (c Client) RecvCleanPacket(proof []byte, pack packet.CleanPacket, height in
 	owner, err := c.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
 		return ctypes.ResultTx{}, err.(tibctypes.IError)
+
 	}
 
 	msg := &packet.MsgRecvCleanPacket{

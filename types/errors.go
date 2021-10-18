@@ -145,6 +145,20 @@ type unpacker interface {
 	Unpack() []error
 }
 
+func IErrorWrap(err IError, description string) IError {
+	if err == nil {
+		return nil
+	}
+
+	errMsg := fmt.Sprintf("[%s,%s]", err.Error(), description)
+
+	return &Error{
+		codeSpace:err.Codespace(),
+		code:err.Code(),
+		desc:errMsg,
+	}
+}
+
 func Wrap(err error, description string) error {
 	if err == nil {
 		return nil
