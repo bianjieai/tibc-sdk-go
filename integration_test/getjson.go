@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"context"
 	"crypto/tls"
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -28,12 +27,13 @@ import (
 )
 
 const (
-	TenConType = "{\"@type\":\"/tibc.lightclients.tendermint.v1.ConsensusState\","
-	TenStaType = "{\"@type\":\"/tibc.lightclients.tendermint.v1.ClientState\","
-	BscConType = "{\"@type\":\"/tibc.lightclients.bsc.v1.ConsensusState\","
-	BscStaType = "{\"@type\":\"/tibc.lightclients.bsc.v1.ClientState\","
-	EthConType = "{\"@type\":\"/tibc.lightclients.eth.v1.ConsensusState\","
-	EthStaType = "{\"@type\":\"/tibc.lightclients.eth.v1.ClientState\","
+	TenHeaderType = "{\"@type\":\"/tibc.lightclients.tendermint.v1.Header\","
+	TenConType    = "{\"@type\":\"/tibc.lightclients.tendermint.v1.ConsensusState\","
+	TenStaType    = "{\"@type\":\"/tibc.lightclients.tendermint.v1.ClientState\","
+	BscConType    = "{\"@type\":\"/tibc.lightclients.bsc.v1.ConsensusState\","
+	BscStaType    = "{\"@type\":\"/tibc.lightclients.bsc.v1.ClientState\","
+	EthConType    = "{\"@type\":\"/tibc.lightclients.eth.v1.ConsensusState\","
+	EthStaType    = "{\"@type\":\"/tibc.lightclients.eth.v1.ClientState\","
 )
 
 const (
@@ -44,6 +44,38 @@ const (
 	epoch          = uint64(200)
 	TestnetChainId = 97
 )
+
+func getTendermintHeaderJson(client tibc.Client, height, trustHeight int64) {
+	res, err := client.QueryBlock(height)
+	if err != nil {
+		fmt.Println("QueryBlock fail:  ", err)
+	}
+	tmHeader := res.Block.Header
+
+	resCommit, err := client.Commit(context.Background(), &res.BlockResult.Height)
+	if err != nil {
+		fmt.Println("QueryBlock fail:  ", err)
+	}
+	commit := resCommit.Commit
+	signedHeader := &tenderminttypes.SignedHeader{
+		Header: tmHeader.ToProto(),
+		Commit: commit.ToProto(),
+	}
+	var tendermintHeader = &tendermint.Header{
+		SignedHeader:      signedHeader,
+		ValidatorSet:      queryValidatorSet(height, client),
+		TrustedHeight:     tibcclient.NewHeight(0, uint64(trustHeight)),
+		TrustedValidators: queryValidatorSet(height, client),
+	}
+
+	header0, err := client.Codec.MarshalJSON(tendermintHeader)
+	if err != nil {
+		panic(err)
+	}
+	updateHeader := []byte(TenHeaderType + string(header0)[1:])
+	headerName := tmHeader.ChainID + "_header.json"
+	writeCreateClientFiles(headerName, string(updateHeader))
+}
 
 //Generate a JSON file needed to create the light client
 //Add the following string to the header after the file is generated
@@ -60,28 +92,9 @@ func getTendermintjson(client tibc.Client, height int64) {
 		fmt.Println("QueryBlock fail:  ", err)
 	}
 	tmHeader := res.Block.Header
-	resCommit, err := client.Commit(context.Background(), &res.BlockResult.Height)
-	if err != nil {
-		fmt.Println("QueryBlock fail:  ", err)
-	}
-	commit := resCommit.Commit
-	signedHeader := &tenderminttypes.SignedHeader{
-		Header: tmHeader.ToProto(),
-		Commit: commit.ToProto(),
-	}
-	var tendermintHeader = tendermint.Header{
-		SignedHeader:      signedHeader,
-		ValidatorSet:      queryValidatorSet(height, client),
-		TrustedHeight:     tibcclient.NewHeight(0, uint64(height)),
-		TrustedValidators: queryValidatorSet(height, client),
-	}
-	tendermintHeaderMarshal, err := tendermintHeader.Marshal()
-	if err != nil {
-		return
-	}
-	fmt.Println(hex.EncodeToString(tendermintHeaderMarshal))
 
 	lastHeight := tibcclient.NewHeight(0, uint64(height))
+
 	var clientstate = &tendermint.ClientState{
 		ChainId:         tmHeader.ChainID,
 		TrustLevel:      fra,
@@ -96,7 +109,7 @@ func getTendermintjson(client tibc.Client, height int64) {
 	//ConsensusState
 	var consensusState = &tendermint.ConsensusState{
 		Timestamp:          tmHeader.Time,
-		Root:               commitment.NewMerkleRoot([]byte("app_hash")),
+		Root:               commitment.NewMerkleRoot(tmHeader.AppHash),
 		NextValidatorsHash: queryValidatorSet1(res.Block.Height, client).Hash(),
 	}
 

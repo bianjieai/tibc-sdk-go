@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/irisnet/core-sdk-go/types"
 )
 
@@ -14,16 +16,16 @@ const (
 	keyNameIritaA  = "chainANode0"
 	passwordIritaA = "12345678"
 	keyStoreIritaA = `-----BEGIN TENDERMINT PRIVATE KEY-----
-type: sm2
 kdf: bcrypt
-salt: DB87DBA0C7597ADAEB376421A8F6274E
+salt: E8B7448668D583E92FB5BA4F80A3F86C
+type: sm2
 
-kOMsXT79I5Jtja1F6pJd3QswWRk/AliSDBkwTCzmA3FVsbrNNnG6dwtP3u35YtGq
-qSMVAD5ESuTSmSZPo4y3UqKwV8UbUnE5PxN9MMw=
-=388z
+GMOWF0k8nOuSEMNrAkEXIlWk9vc2RLFzr3pMjWJSg5hlpuzUEPePVIm2m4BCNUD6
+vKXJvRcAtRCpFWLlTcl1UdOw4OXWejmP/Jt4QEw=
+=vvsl
 -----END TENDERMINT PRIVATE KEY-----`
 	chainLightClientNameA = "testCreateClientA"
-	addressIritaA         = "iaa1rv9v0vrczgvgc43vygw88nxgwslqzlyf9ev55v"
+	addressIritaA         = "iaa1nu7awd4evcn4ts4h0su735nhv9vfejkkv3unpc"
 )
 const (
 	nodeURIIritaC  = "tcp://localhost:36657"
@@ -33,15 +35,15 @@ const (
 	passwordIritaC = "12345678"
 	keyStoreIritaC = `-----BEGIN TENDERMINT PRIVATE KEY-----
 kdf: bcrypt
-salt: 085CC39C43FEF806B4C9615185C32EE3
+salt: EFD047FF1911092D736FBA56C6A6FFF9
 type: sm2
 
-50bD6y7XvPcSXJcuzJ/U8ZZPAZXrGCFBheCPfgJTCRaDhTalkToAO2Xd+uFnLrn7
-g+SA5uqSDWildWyJMib55Q/p7pHyLRvFF+bDGcs=
-=Qlej
+RzaJ5LV3qZ6bO/xf6AiIPAmpop4t0roG1y+3GWBWPw4PAsSeN5JajSgyadlad1C7
+aGm0ZlxzZL2U7DxTk5neFiNePMz7H4U25JDHpf4=
+=DcPH
 -----END TENDERMINT PRIVATE KEY-----`
 	chainLightClientNameC = "testCreateClientC"
-	addressIritaC         = "iaa1xv92hhgng23547xrqy2d9e8pxqqurwd9cgdn05"
+	addressIritaC         = "iaa1v8a9a3pql7fznez0yg8tlg03huh34a4u9u04h7"
 )
 
 func Test_Irita(t *testing.T) {
@@ -50,16 +52,37 @@ func Test_Irita(t *testing.T) {
 		fmt.Println(err.Codespace(), err.Code(), err.Error(), clientA)
 		return
 	}
+	address, err2 := clientA.QueryAddress(keyNameIritaA, passwordIritaA)
+	if err2 != nil {
+		return
+	}
+	require.Equal(t, address.String(), addressIritaA)
+
 	clientC, err := getIntegrationClient(nodeURIIritaC, grpcAddrIritaC, chainIDIritaC, keyNameIritaC, passwordIritaC, keyStoreIritaC, chainLightClientNameC)
 	if err != nil {
 		fmt.Println(err.Codespace(), err.Code(), err.Error(), clientC)
 		return
 	}
-	getTendermintjson(clientA.Tendermint, 100)
-	getTendermintjson(clientC.Tendermint, 100)
+	address, err2 = clientC.QueryAddress(keyNameIritaC, passwordIritaC)
+	if err2 != nil {
+		return
+	}
+	require.Equal(t, address.String(), addressIritaC)
 
-	//sendTest(clientA, keyNameIritaA)
-	//updateIritaClient(clientA, clientC)
+	getTendermintjson(clientA.Tendermint, 10)
+	getTendermintjson(clientC.Tendermint, 10)
+	sendTest(clientA, keyNameIritaA)
+	updateIritaClient(clientA, clientC)
+	res, err := packetRecive(clientC, clientA, keyNameIritaA, "8200D3BC9CE7244BF33088C524ABFEBF96759E7AB30DE3013AAE92BC0579A72F")
+	require.Nil(t, err)
+	fmt.Println(res)
+	updateIritaClient(clientA, clientC)
+	updateIritaClient(clientA, clientC)
+	res, err = sendAck(clientC, clientA, keyNameIritaC, "614FD3941370E7405CD89BABE9312D093743FB3F00CCFF304A42771194A73B6A")
+	require.Nil(t, err)
+	fmt.Println(res)
+	updateIritaClient(clientA, clientC)
+
 }
 func updateIritaClient(clientA, clientC Client) {
 	updatetendetmintclientTest(clientA, clientC, chainLightClientNameC, keyNameIritaA)

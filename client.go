@@ -190,6 +190,7 @@ func (c Client) UpdateClient(req tibctypes.UpdateClientRequest, baseTx types.Bas
 	}
 	resultTx, err := c.BuildAndSend([]types.Msg{msg}, baseTx)
 	if err != nil {
+		fmt.Println(err)
 		return ctypes.ResultTx{}, tibctypes.ErrUpdateClient
 	}
 	return resultTx, nil

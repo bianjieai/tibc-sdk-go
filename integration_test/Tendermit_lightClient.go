@@ -185,7 +185,12 @@ func updatetendetmintclientTest(sourceClient Client, destClient Client, chainNam
 	height1 := stat.SyncInfo.LatestBlockHeight
 	request := tibctypes.UpdateClientRequest{
 		ChainName: chainName,
-		Header:    CreateTenderrmintHeader(destClient, height1, tibcclient.NewHeight(lightClientState.GetLatestHeight().GetRevisionNumber(), uint64(height)), lightClientState),
+		Header: CreateTenderrmintHeader(
+			destClient,
+			height1,
+			tibcclient.NewHeight(lightClientState.GetLatestHeight().GetRevisionNumber(), uint64(height)),
+			lightClientState,
+		),
 	}
 	fmt.Println("run : update client ", sourceClient.ChainName, ".", destClient.ChainName)
 	_, err = sourceClient.Tendermint.UpdateClient(request, baseTx)

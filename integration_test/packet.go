@@ -174,6 +174,7 @@ func sendAck(sourceClient Client, destClient Client, keyname string, txhash stri
 	}
 	// ProofCommitment and ProofHeight are derived from the packet
 	key := packet.PacketAcknowledgementKey(packet1.GetSourceChain(), packet1.GetDestChain(), packet1.GetSequence())
+	//_, proofBz, _, err1 := destClient.Tendermint.QueryTendermintProof(int64(height.GetRevisionHeight()), key)
 	_, proofBz, _, err1 := destClient.Tendermint.QueryTendermintProof(int64(height.GetRevisionHeight()), key)
 
 	if err1 != nil {
@@ -190,7 +191,7 @@ func sendAck(sourceClient Client, destClient Client, keyname string, txhash stri
 	return ress.Hash.String(), nil
 }
 
-func packetRecive(sourceClient Client, destClient Client, keyname string, txHash string) (string, tibctypes.IError) {
+func packetRecive(sourceClient Client, destClient Client, keyName string, txHash string) (string, tibctypes.IError) {
 	tx, err := sourceClient.QueryTx(txHash)
 	if err != nil {
 		fmt.Println(err)
@@ -202,7 +203,7 @@ func packetRecive(sourceClient Client, destClient Client, keyname string, txHash
 	packet1, err := getpacket(tx)
 	//fmt.Println(packet1.String())
 	baseTx := types.BaseTx{
-		From:               keyname,
+		From:               keyName,
 		Gas:                0,
 		Memo:               "TEST",
 		Mode:               types.Commit,
