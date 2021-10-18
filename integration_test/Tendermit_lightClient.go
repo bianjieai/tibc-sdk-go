@@ -54,7 +54,7 @@ func getheader(client Client, height int64, trustHeight tibcclient.Height, clien
 		TrustedHeight:     trustHeight,
 		TrustedValidators: queryValidatorSet(int64(clientState.GetLatestHeight().GetRevisionHeight()), client.Tendermint),
 	}
-	b0, err := client.Tendermint.Marshaler.MarshalJSON(fmtheader)
+	b0, err := client.Tendermint.Codec.MarshalJSON(fmtheader)
 	if err != nil {
 		panic(err)
 	}
@@ -164,7 +164,7 @@ func updateEthClientTest(sourceClient Client, chainName, keyName, url string) {
 func updatetendetmintclientTest(sourceClient Client, destClient Client, chainName, keyName string) {
 	baseTx := types.BaseTx{
 		From:               keyName,
-		Gas:                0,
+		Gas:                300000,
 		Memo:               "TEST",
 		Mode:               types.Commit,
 		Password:           "12345678",
@@ -197,7 +197,6 @@ func updatetendetmintclientTest(sourceClient Client, destClient Client, chainNam
 }
 
 func CreateTenderrmintHeader(client Client, height int64, trustHeight tibcclient.Height, clientState tibctypes.ClientState) *tendermint.Header {
-
 	res, err := client.QueryBlock(height)
 	if err != nil {
 		fmt.Println("QueryBlock fail:  ", err)
@@ -210,22 +209,6 @@ func CreateTenderrmintHeader(client Client, height int64, trustHeight tibcclient
 		Header: tmHeader.ToProto(),
 		Commit: commit.ToProto(),
 	}
-	// print header json
-	//ehdaer := tendermint.Header{
-	//	SignedHeader:      signedHeader,
-	//	ValidatorSet:      queryValidatorSet(height, client.Tendermint),
-	//	TrustedHeight:     trustHeight,
-	//	TrustedValidators: queryValidatorSet(int64(clientState.GetLatestHeight().GetRevisionHeight()), client.Tendermint),
-	//}
-	//
-	//b0, err := json.Marshal(ehdaer)
-	//if err != nil {
-	//	panic(err)
-	//}
-	//
-	//b0 = []byte(TenStaType + string(b0)[1:])
-	//clientStateName := "client_header.json"
-	//err = ioutil.WriteFile(clientStateName, b0, os.ModeAppend)
 
 	return &tendermint.Header{
 		SignedHeader:      signedHeader,
@@ -243,8 +226,7 @@ func queryValidatorSet(height int64, client tibc.Client) *tenderminttypes.Valida
 	if err != nil {
 		fmt.Println("queryValidatorSet fail :", err)
 	}
-	fmt.Println(len(validators.Validators))
-	validatorSet, err := tmtypes.NewValidatorSet(validators.Validators[:20]).ToProto()
+	validatorSet, err := tmtypes.NewValidatorSet(validators.Validators[:]).ToProto()
 	if err != nil {
 		fmt.Println("queryValidatorSet fail :", err)
 	}

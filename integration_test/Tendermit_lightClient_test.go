@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
-	"github.com/irisnet/core-sdk-go/common/crypto"
+
 	"github.com/irisnet/core-sdk-go/types"
 	"github.com/irisnet/core-sdk-go/types/store"
 )
@@ -36,16 +36,16 @@ const (
 	keyNamelocal  = "chainCNode0"
 	passwordlocal = "12345678"
 	keyStorelocal = `-----BEGIN TENDERMINT PRIVATE KEY-----
-kdf: bcrypt
-salt: F248AB34AE4BED4B4A5DD10E34C8BAFA
+salt: CA48342449109C7507780445A88693AC
 type: secp256k1
+kdf: bcrypt
 
-xqzXVX8JXYQWj/aJmH3hNfEqlO3IAM35C+oXkys02KfXcHZm+LDBVTRUFpONV3iB
-C8FzpKaS8W69qqXhNP2sLBtHrGIk8L3T0wAVM3Q=
-=2BeH
+R10TXP3fCDmDrMN75fM7XcYF+jTHmrpRK/EpWXmIzG9tF6QcE+Y/Bx05Mme5a8Vl
+ZyCtUzw26fgHybTEKUYZRoVWgUCcvTZCjBkMDwc=
+=oEQt
 -----END TENDERMINT PRIVATE KEY-----`
 	chainlocalLightClientName = "testCreateClientC"
-	addresslocal              = "iaa10nfdefym9vg7c288fm4790833ee5f4p0g8w3ej"
+	addresslocal              = "iaa1e7qw5tkgx6gsakw0t8f4flmvfcx20guhrdu06l"
 )
 const (
 	nodeURI0  = "tcp://192.168.232.133:26657"
@@ -145,8 +145,8 @@ func Test_integrationClientTen(t *testing.T) {
 		fmt.Println(err.Codespace(), err.Code(), err.Error(), clientA)
 		return
 	}
-	address, err := clientA.QueryAddress(keyName0, password0)
-	if err != nil {
+	address, err1 := clientA.QueryAddress(keyName0, password0)
+	if err1 != nil {
 		fmt.Println(err)
 		return
 	}
@@ -166,10 +166,10 @@ func Test_integrationClientTen(t *testing.T) {
 		Amount: dec,
 	}
 	amount := types.DecCoins{deccoin}
-	resu, err := clientA.Bank.Send("cosmos1mzzl97r8zkst5rgz2fyja99f3m9wh50hxg0ct9", amount, baseTx)
+	resu, err1 := clientA.Bank.Send("cosmos1mzzl97r8zkst5rgz2fyja99f3m9wh50hxg0ct9", amount, baseTx)
 
-	if err != nil {
-		fmt.Println(err)
+	if err1 != nil {
+		fmt.Println(err1)
 		return
 	}
 
@@ -196,13 +196,13 @@ func Test_integrationClientBsc(t *testing.T) {
 }
 
 func Test_integrationClientETH(t *testing.T) {
-	clientC, err := getIntegrationClient(nodeURI2, grpcAddr2, chainID2, keyName2, password2, keyStore2, chainCLightClientName)
+	clientC, err := getIntegrationClient(nodeURIlocal, grpcAddrlocal, chainIDlocal, keyNamelocal, passwordlocal, keyStorelocal, chainCLightClientName)
 	if err != nil {
 		fmt.Println(err.Codespace(), err.Code(), err.Error(), clientC)
 		return
 	}
 	//getETHjson(clientC.Tendermint)
-	//updateEthClientTest(clientC, "ethclient", keyName2, ethurl)
+	updateEthClientTest(clientC, "ethclient", keyName2, ethurl)
 	for i := 1; i < 50; i++ {
 		updateEthClientTest(clientC, "ethclient", keyName2, ethurl)
 	}
@@ -216,19 +216,12 @@ func updateAllCient(clientA, clientB, clientC Client) {
 }
 
 func getIntegrationClient(nodeURI, grpcAddr, chainID, keyName, password, keyStore, chainName string) (Client, tibctypes.IError) {
-	feeCoin, err := types.ParseDecCoins("10stake")
-	//bech32AddressPrefix := types.AddrPrefixCfg{
-	//	AccountAddr:   "cosmos",
-	//	ValidatorAddr: "iva",
-	//	ConsensusAddr: "ica",
-	//	AccountPub:    "iap",
-	//	ValidatorPub:  "ivp",
-	//	ConsensusPub:  "icp",
-	//}
+	feeCoin, err := types.ParseDecCoins("10000upoint")
 	options := []types.Option{
 		types.KeyDAOOption(store.NewMemory(nil)),
 		types.TimeoutOption(3000),
-		types.KeyManagerOption(crypto.NewKeyManager()),
+		//types.KeyManagerOption(crypto.NewKeyManager()),
+		types.AlgoOption("sm2"),
 		types.BIP44PathOption(""),
 		types.FeeOption(feeCoin),
 	}

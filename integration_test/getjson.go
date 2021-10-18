@@ -1,6 +1,7 @@
 package integration
 
 import (
+	"bufio"
 	"context"
 	"crypto/tls"
 	"encoding/hex"
@@ -71,8 +72,8 @@ func getTendermintjson(client tibc.Client, height int64) {
 	var tendermintHeader = tendermint.Header{
 		SignedHeader:      signedHeader,
 		ValidatorSet:      queryValidatorSet(height, client),
-		TrustedHeight:     tibcclient.NewHeight(0, 11762490),
-		TrustedValidators: queryValidatorSet(11762490, client),
+		TrustedHeight:     tibcclient.NewHeight(0, uint64(height)),
+		TrustedValidators: queryValidatorSet(height, client),
 	}
 	tendermintHeaderMarshal, err := tendermintHeader.Marshal()
 	if err != nil {
@@ -80,7 +81,7 @@ func getTendermintjson(client tibc.Client, height int64) {
 	}
 	fmt.Println(hex.EncodeToString(tendermintHeaderMarshal))
 
-	lastHeight := tibcclient.NewHeight(0, 4)
+	lastHeight := tibcclient.NewHeight(0, uint64(height))
 	var clientstate = &tendermint.ClientState{
 		ChainId:         tmHeader.ChainID,
 		TrustLevel:      fra,
@@ -99,39 +100,35 @@ func getTendermintjson(client tibc.Client, height int64) {
 		NextValidatorsHash: queryValidatorSet1(res.Block.Height, client).Hash(),
 	}
 
-	marshal, err := clientstate.Marshal()
-	if err != nil {
-		return
-	}
-	fmt.Println(hex.EncodeToString(marshal))
-	marshal1, err := consensusState.Marshal()
-	if err != nil {
-		return
-	}
-	fmt.Println(hex.EncodeToString(marshal1))
-
-	b0, err := client.Marshaler.MarshalJSON(clientstate)
+	b0, err := client.Codec.MarshalJSON(clientstate)
 	if err != nil {
 		panic(err)
 	}
 	b0 = []byte(TenStaType + string(b0)[1:])
 	clientStateName := tmHeader.ChainID + "_client_state.json"
-	err = ioutil.WriteFile(clientStateName, b0, os.ModeAppend)
-	if err != nil {
-		return
-	}
-	b1, err := client.Marshaler.MarshalJSON(consensusState)
+	writeCreateClientFiles(clientStateName, string(b0))
+
+	b1, err := client.Codec.MarshalJSON(consensusState)
 	if err != nil {
 		panic(err)
 	}
 	b1 = []byte(TenConType + string(b1)[1:])
 	clientConsensusStateName := tmHeader.ChainID + "_consensus_state.json"
-	err = ioutil.WriteFile(clientConsensusStateName, b1, os.ModeAppend)
-	if err != nil {
-		return
-	}
+	writeCreateClientFiles(clientConsensusStateName, string(b1))
 }
 
+func writeCreateClientFiles(filePath string, content string) {
+	file, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE, 0666)
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+	writer := bufio.NewWriter(file)
+	if _, err := writer.WriteString(content); err != nil {
+		panic(err)
+	}
+	writer.Flush()
+}
 func queryValidatorSet1(height int64, client tibc.Client) *tmtypes.ValidatorSet {
 	validators, err := client.Validators(context.Background(), &height, nil, nil)
 	if err != nil {
@@ -191,7 +188,7 @@ func getBSCjson(client tibc.Client) {
 		Number:    number,
 		Root:      header.Root[:],
 	}
-	b0, err := client.Marshaler.MarshalJSON(&clientState)
+	b0, err := client.Codec.MarshalJSON(&clientState)
 	if err != nil {
 		panic(err)
 	}
@@ -201,7 +198,7 @@ func getBSCjson(client tibc.Client) {
 	if err != nil {
 		return
 	}
-	b1, err := client.Marshaler.MarshalJSON(&consensusState)
+	b1, err := client.Codec.MarshalJSON(&consensusState)
 	if err != nil {
 		panic(err)
 	}
@@ -237,7 +234,7 @@ func getRinkebyETHjson(client tibc.Client) {
 		Number:    number,
 		Root:      header.Root[:],
 	}
-	b0, err := client.Marshaler.MarshalJSON(&clientState)
+	b0, err := client.Codec.MarshalJSON(&clientState)
 	if err != nil {
 		panic(err)
 	}
@@ -247,7 +244,7 @@ func getRinkebyETHjson(client tibc.Client) {
 	if err != nil {
 		return
 	}
-	b1, err := client.Marshaler.MarshalJSON(&consensusState)
+	b1, err := client.Codec.MarshalJSON(&consensusState)
 	if err != nil {
 		panic(err)
 	}
@@ -283,7 +280,7 @@ func getETHjson(client tibc.Client) {
 		Number:    number,
 		Root:      header.Root[:],
 	}
-	b0, err := client.Marshaler.MarshalJSON(&clientState)
+	b0, err := client.Codec.MarshalJSON(&clientState)
 	if err != nil {
 		panic(err)
 	}
@@ -293,7 +290,7 @@ func getETHjson(client tibc.Client) {
 	if err != nil {
 		return
 	}
-	b1, err := client.Marshaler.MarshalJSON(&consensusState)
+	b1, err := client.Codec.MarshalJSON(&consensusState)
 	if err != nil {
 		panic(err)
 	}

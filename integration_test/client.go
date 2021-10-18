@@ -2,13 +2,14 @@ package integration
 
 import (
 	tibc "github.com/bianjieai/tibc-sdk-go"
-	"github.com/irisnet/core-sdk-go/bank"
 	"github.com/irisnet/core-sdk-go/client"
-	"github.com/irisnet/core-sdk-go/common/codec"
-	cdctypes "github.com/irisnet/core-sdk-go/common/codec/types"
-	cryptocodec "github.com/irisnet/core-sdk-go/common/crypto/codec"
-	"github.com/irisnet/core-sdk-go/gov"
-	"github.com/irisnet/core-sdk-go/staking"
+	"github.com/irisnet/core-sdk-go/codec"
+	cdctypes "github.com/irisnet/core-sdk-go/codec/types"
+	cryptocodec "github.com/irisnet/core-sdk-go/crypto/codec"
+	"github.com/irisnet/core-sdk-go/modules/bank"
+
+	"github.com/irisnet/core-sdk-go/modules/gov"
+	"github.com/irisnet/core-sdk-go/modules/staking"
 	"github.com/irisnet/core-sdk-go/types"
 	txtypes "github.com/irisnet/core-sdk-go/types/tx"
 )
@@ -27,9 +28,9 @@ func NewClient(cfg types.ClientConfig, chainName string) Client {
 	encodingConfig := makeEncodingConfig()
 	// create a instance of baseClient
 	baseClient := client.NewBaseClient(cfg, encodingConfig, nil)
-	bankClient := bank.NewClient(baseClient, encodingConfig.Marshaler)
-	stakingClient := staking.NewClient(baseClient, encodingConfig.Marshaler)
-	govClient := gov.NewClient(baseClient, encodingConfig.Marshaler)
+	bankClient := bank.NewClient(baseClient, encodingConfig.Codec)
+	stakingClient := staking.NewClient(baseClient, encodingConfig.Codec)
+	govClient := gov.NewClient(baseClient, encodingConfig.Codec)
 	tendermint := tibc.NewClient(baseClient, encodingConfig)
 
 	client := &Client{
@@ -68,7 +69,7 @@ func makeEncodingConfig() types.EncodingConfig {
 
 	encodingConfig := types.EncodingConfig{
 		InterfaceRegistry: interfaceRegistry,
-		Marshaler:         marshaler,
+		Codec:             marshaler,
 		TxConfig:          txCfg,
 		Amino:             amino,
 	}

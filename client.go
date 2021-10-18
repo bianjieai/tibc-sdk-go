@@ -12,10 +12,11 @@ import (
 	"github.com/bianjieai/tibc-sdk-go/tendermint"
 	tibcnft "github.com/bianjieai/tibc-sdk-go/types"
 	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
-	"github.com/irisnet/core-sdk-go/common/codec"
-	cryptotypes "github.com/irisnet/core-sdk-go/common/codec/types"
+	"github.com/irisnet/core-sdk-go/codec"
+	cryptotypes "github.com/irisnet/core-sdk-go/codec/types"
 	"github.com/irisnet/core-sdk-go/types"
 	"github.com/irisnet/core-sdk-go/types/query"
+	ctypes "github.com/tendermint/tendermint/rpc/core/types"
 )
 
 type Client struct {
@@ -64,7 +65,7 @@ func (c Client) GetClientState(chainName string) (tibctypes.ClientState, tibctyp
 		return clientState, tibctypes.ErrGetLightClientState
 	}
 
-	if err := c.Marshaler.UnpackAny(res.ClientState, &clientState); err != nil {
+	if err := c.Codec.UnpackAny(res.ClientState, &clientState); err != nil {
 		return clientState, tibctypes.ErrUnpackAny
 	}
 	return clientState, nil
@@ -87,7 +88,7 @@ func (c Client) GetClientStates() ([]tibctypes.ClientState, tibctypes.IError) {
 	}
 	clientState := make([]tibctypes.ClientState, len(res.ClientStates))
 	for index, value := range res.ClientStates {
-		if err := c.Marshaler.UnpackAny(value.ClientState, &clientState[index]); err != nil {
+		if err := c.Codec.UnpackAny(value.ClientState, &clientState[index]); err != nil {
 			return nil, tibctypes.ErrUnpackAny
 		}
 	}
@@ -115,7 +116,7 @@ func (c Client) GetConsensusState(chainName string, height uint64) (tibctypes.Co
 	}
 	var consensusState tibctypes.ConsensusState
 
-	if err := c.Marshaler.UnpackAny(res.ConsensusState, &consensusState); err != nil {
+	if err := c.Codec.UnpackAny(res.ConsensusState, &consensusState); err != nil {
 		return nil, tibctypes.ErrUnpackAny
 	}
 
@@ -142,7 +143,7 @@ func (c Client) GetConsensusStates(chainName string) ([]tibctypes.ConsensusState
 	}
 	ConsensusState := make([]tibctypes.ConsensusState, len(res.ConsensusStates))
 	for index, value := range res.ConsensusStates {
-		if err := c.Marshaler.UnpackAny(value.ConsensusState, &ConsensusState[index]); err != nil {
+		if err := c.Codec.UnpackAny(value.ConsensusState, &ConsensusState[index]); err != nil {
 			return nil, tibctypes.ErrUnpackAny
 		}
 	}
@@ -171,14 +172,14 @@ func (c Client) Relayers(chainName string) ([]string, tibctypes.IError) {
 	return relay.Relayers, nil
 }
 
-func (c Client) UpdateClient(req tibctypes.UpdateClientRequest, baseTx types.BaseTx) (types.ResultTx, tibctypes.IError) {
+func (c Client) UpdateClient(req tibctypes.UpdateClientRequest, baseTx types.BaseTx) (ctypes.ResultTx, tibctypes.IError) {
 	owner, err := c.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return types.ResultTx{}, err.(tibctypes.IError)
+		return ctypes.ResultTx{}, err.(tibctypes.IError)
 	}
 	res, errs := cryptotypes.NewAnyWithValue(req.Header)
 	if errs != nil {
-		return types.ResultTx{}, tibctypes.ErrPackAny
+		return ctypes.ResultTx{}, tibctypes.ErrPackAny
 	}
 	msg := &client.MsgUpdateClient{
 		ChainName: req.ChainName,
@@ -189,7 +190,7 @@ func (c Client) UpdateClient(req tibctypes.UpdateClientRequest, baseTx types.Bas
 	}
 	resultTx, err := c.BuildAndSend([]types.Msg{msg}, baseTx)
 	if err != nil {
-		return types.ResultTx{}, tibctypes.ErrUpdateClient
+		return ctypes.ResultTx{}, tibctypes.ErrUpdateClient
 	}
 	return resultTx, nil
 }
@@ -330,18 +331,18 @@ func (c Client) UnreceivedAcks(destChain string, sourceChain string, packetAckSe
 	}
 	return unreceivedAcks, nil
 }
-func (c Client) RecvPackets(msgs []types.Msg, baseTx types.BaseTx) (types.ResultTx, tibctypes.IError) {
+func (c Client) RecvPackets(msgs []types.Msg, baseTx types.BaseTx) (ctypes.ResultTx, tibctypes.IError) {
 	txreq, err := c.BuildAndSend(msgs, baseTx)
 	if err != nil {
-		return types.ResultTx{}, tibctypes.ErrRecvPacket
+		return ctypes.ResultTx{}, tibctypes.ErrRecvPacket
 	}
 	return txreq, nil
 }
 
-func (c Client) RecvPacket(proof []byte, pack packet.Packet, height int64, revisionNumber uint64, baseTx types.BaseTx) (types.ResultTx, tibctypes.IError) {
+func (c Client) RecvPacket(proof []byte, pack packet.Packet, height int64, revisionNumber uint64, baseTx types.BaseTx) (ctypes.ResultTx, tibctypes.IError) {
 	owner, err := c.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return types.ResultTx{}, err.(tibctypes.IError)
+		return ctypes.ResultTx{}, err.(tibctypes.IError)
 	}
 	msg := &packet.MsgRecvPacket{
 		Packet:          pack,
@@ -354,15 +355,15 @@ func (c Client) RecvPacket(proof []byte, pack packet.Packet, height int64, revis
 	}
 	txreq, err := c.BuildAndSend([]types.Msg{msg}, baseTx)
 	if err != nil {
-		return types.ResultTx{}, tibctypes.ErrRecvPacket
+		return ctypes.ResultTx{}, tibctypes.ErrRecvPacket
 	}
 	return txreq, nil
 }
 
-func (c Client) Acknowledgement(proof []byte, acknowledgement []byte, pack packet.Packet, height int64, revisionNumber uint64, baseTx types.BaseTx) (types.ResultTx, tibctypes.IError) {
+func (c Client) Acknowledgement(proof []byte, acknowledgement []byte, pack packet.Packet, height int64, revisionNumber uint64, baseTx types.BaseTx) (ctypes.ResultTx, tibctypes.IError) {
 	owner, err := c.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return types.ResultTx{}, err.(tibctypes.IError)
+		return ctypes.ResultTx{}, err.(tibctypes.IError)
 	}
 	msg := &packet.MsgAcknowledgement{
 		Packet:          pack,
@@ -376,15 +377,15 @@ func (c Client) Acknowledgement(proof []byte, acknowledgement []byte, pack packe
 	}
 	txreq, err := c.BuildAndSend([]types.Msg{msg}, baseTx)
 	if err != nil {
-		return types.ResultTx{}, tibctypes.ErrSendAckPacket
+		return ctypes.ResultTx{}, tibctypes.ErrSendAckPacket
 	}
 	return txreq, nil
 }
 
-func (c Client) CleanPacket(cleanPacket packet.CleanPacket, baseTx types.BaseTx) (types.ResultTx, tibctypes.IError) {
+func (c Client) CleanPacket(cleanPacket packet.CleanPacket, baseTx types.BaseTx) (ctypes.ResultTx, tibctypes.IError) {
 	owner, err := c.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return types.ResultTx{}, err.(tibctypes.IError)
+		return ctypes.ResultTx{}, err.(tibctypes.IError)
 	}
 	msg := &packet.MsgCleanPacket{
 		CleanPacket: cleanPacket,
@@ -392,15 +393,15 @@ func (c Client) CleanPacket(cleanPacket packet.CleanPacket, baseTx types.BaseTx)
 	}
 	txreq, err := c.BuildAndSend([]types.Msg{msg}, baseTx)
 	if err != nil {
-		return types.ResultTx{}, tibctypes.ErrSendCleanPacket
+		return ctypes.ResultTx{}, tibctypes.ErrSendCleanPacket
 	}
 	return txreq, nil
 }
 
-func (c Client) RecvCleanPacket(proof []byte, pack packet.CleanPacket, height int64, revisionNumber uint64, baseTx types.BaseTx) (types.ResultTx, tibctypes.IError) {
+func (c Client) RecvCleanPacket(proof []byte, pack packet.CleanPacket, height int64, revisionNumber uint64, baseTx types.BaseTx) (ctypes.ResultTx, tibctypes.IError) {
 	owner, err := c.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return types.ResultTx{}, err.(tibctypes.IError)
+		return ctypes.ResultTx{}, err.(tibctypes.IError)
 	}
 
 	msg := &packet.MsgRecvCleanPacket{
@@ -414,15 +415,15 @@ func (c Client) RecvCleanPacket(proof []byte, pack packet.CleanPacket, height in
 	}
 	txreq, err := c.BuildAndSend([]types.Msg{msg}, baseTx)
 	if err != nil {
-		return types.ResultTx{}, tibctypes.ErrRecvCleanPacket
+		return ctypes.ResultTx{}, tibctypes.ErrRecvCleanPacket
 	}
 	return txreq, nil
 }
 
-func (c Client) NftTransfer(class, id, receiver, destChainName, realayChainName string, baseTx types.BaseTx) (types.ResultTx, tibctypes.IError) {
+func (c Client) NftTransfer(class, id, receiver, destChainName, realayChainName string, baseTx types.BaseTx) (ctypes.ResultTx, tibctypes.IError) {
 	owner, err := c.QueryAddress(baseTx.From, baseTx.Password)
 	if err != nil {
-		return types.ResultTx{}, err.(tibctypes.IError)
+		return ctypes.ResultTx{}, err.(tibctypes.IError)
 	}
 	msg := &tibcnft.MsgNftTransfer{
 		Class:       class,
@@ -434,7 +435,7 @@ func (c Client) NftTransfer(class, id, receiver, destChainName, realayChainName 
 	}
 	txreq, err := c.BuildAndSend([]types.Msg{msg}, baseTx)
 	if err != nil {
-		return types.ResultTx{}, tibctypes.ErrNftTransfer
+		return ctypes.ResultTx{}, tibctypes.ErrNftTransfer
 	}
 	return txreq, nil
 }
@@ -462,7 +463,7 @@ func (c Client) QueryTendermintProof(height int64, key []byte) ([]byte, []byte, 
 	}
 	cdc := codec.NewProtoCodec(c.EncodingConfig.InterfaceRegistry)
 
-	proofBz, err := cdc.MarshalBinaryBare(&merkleProof)
+	proofBz, err := cdc.Marshal(&merkleProof)
 	if err != nil {
 		return nil, nil, 0, err
 	}

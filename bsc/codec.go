@@ -2,14 +2,14 @@ package bsc
 
 import (
 	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
-	"github.com/irisnet/core-sdk-go/common/codec"
-	"github.com/irisnet/core-sdk-go/common/codec/types"
-	cryptocodec "github.com/irisnet/core-sdk-go/common/crypto/codec"
+
+	"github.com/irisnet/core-sdk-go/codec"
+	"github.com/irisnet/core-sdk-go/codec/types"
+	cryptocodec "github.com/irisnet/core-sdk-go/crypto/codec"
 )
 
 var (
-	amino     = codec.NewLegacyAmino()
-	ModuleCdc = codec.NewAminoCodec(amino)
+	amino = codec.NewLegacyAmino()
 )
 
 func init() {

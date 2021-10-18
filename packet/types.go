@@ -1,7 +1,6 @@
 package packet
 
 import (
-	"github.com/bianjieai/tibc-sdk-go/commitment"
 	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
 	sdk "github.com/irisnet/core-sdk-go/types"
 )
@@ -31,7 +30,7 @@ func (msg MsgRecvPacket) GetSigners() []sdk.AccAddress {
 // ValidateBasic implements sdk.Msg
 func (msg MsgRecvPacket) ValidateBasic() error {
 	if len(msg.ProofCommitment) == 0 {
-		return tibctypes.Wrap(commitment.ErrInvalidProof, "cannot submit an empty proof")
+		return tibctypes.Wrap(ErrInvalidProof, "cannot submit an empty proof")
 	}
 	if msg.ProofHeight.IsZero() {
 		return tibctypes.Wrap(tibctypes.ErrInvalidHeight, "proof height must be non-zero")
@@ -106,7 +105,7 @@ func (msg MsgAcknowledgement) Route() string {
 // ValidateBasic implements sdk.Msg
 func (msg MsgAcknowledgement) ValidateBasic() error {
 	if len(msg.ProofAcked) == 0 {
-		return tibctypes.Wrap(commitment.ErrInvalidProof, "cannot submit an empty proof")
+		return tibctypes.Wrap(ErrInvalidProof, "cannot submit an empty proof")
 	}
 	if msg.ProofHeight.IsZero() {
 		return tibctypes.Wrap(tibctypes.ErrInvalidHeight, "proof height must be non-zero")

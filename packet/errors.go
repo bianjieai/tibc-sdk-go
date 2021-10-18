@@ -15,4 +15,7 @@ var (
 	ErrPacketReceived           = types.Register(moduleName, 8, "packet already received")
 	ErrAcknowledgementExists    = types.Register(moduleName, 9, "acknowledgement for packet already exists")
 	ErrInvalidCleanPacket       = types.Register(moduleName, 10, "invalid clean packet")
+	ErrInvalidProof             = types.Register(moduleName, 11, "invalid proof")
+	ErrInvalidPrefix            = types.Register(moduleName, 12, "invalid prefix")
+	ErrInvalidMerkleProof       = types.Register(moduleName, 13, "invalid merkle proof")
 )

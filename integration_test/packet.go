@@ -7,6 +7,9 @@ import (
 	tibc "github.com/bianjieai/tibc-sdk-go"
 	"github.com/bianjieai/tibc-sdk-go/packet"
 	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
+
+	ctypes "github.com/tendermint/tendermint/rpc/core/types"
+
 	"github.com/irisnet/core-sdk-go/types"
 )
 
@@ -57,33 +60,33 @@ func queryUnreceivedPacketsAndAcks(client tibc.Client) {
 	fmt.Println("acks ", res1.String())
 
 }
-func getpacket(tx types.ResultQueryTx) (packet.Packet, error) {
-	sequence, err := tx.Result.Events.GetValue("send_packet", "packet_sequence")
+func getpacket(tx ctypes.ResultTx) (packet.Packet, error) {
+	sequence, err := types.StringifyEvents(tx.TxResult.Events).GetValue("send_packet", "packet_sequence")
 	if err != nil {
 		fmt.Println(err)
 		return packet.Packet{}, err
 	}
-	sourceChain, err := tx.Result.Events.GetValue("send_packet", "packet_src_chain")
+	sourceChain, err := types.StringifyEvents(tx.TxResult.Events).GetValue("send_packet", "packet_src_chain")
 	if err != nil {
 		fmt.Println(err)
 		return packet.Packet{}, err
 	}
-	destinationChain, err := tx.Result.Events.GetValue("send_packet", "packet_dst_port")
+	destinationChain, err := types.StringifyEvents(tx.TxResult.Events).GetValue("send_packet", "packet_dst_port")
 	if err != nil {
 		fmt.Println(err)
 		return packet.Packet{}, err
 	}
-	port, err := tx.Result.Events.GetValue("send_packet", "packet_port")
+	port, err := types.StringifyEvents(tx.TxResult.Events).GetValue("send_packet", "packet_port")
 	if err != nil {
 		fmt.Println(err)
 		return packet.Packet{}, err
 	}
-	relayChain, err := tx.Result.Events.GetValue("send_packet", "packet_relay_channel")
+	relayChain, err := types.StringifyEvents(tx.TxResult.Events).GetValue("send_packet", "packet_relay_channel")
 	if err != nil {
 		fmt.Println(err)
 		return packet.Packet{}, err
 	}
-	data, err := tx.Result.Events.GetValue("send_packet", "packet_data")
+	data, err := types.StringifyEvents(tx.TxResult.Events).GetValue("send_packet", "packet_data")
 	if err != nil {
 		fmt.Println(err)
 		return packet.Packet{}, err
@@ -102,38 +105,38 @@ func getpacket(tx types.ResultQueryTx) (packet.Packet, error) {
 		Data:             []byte(data),
 	}, nil
 }
-func getpacketAndAck(tx types.ResultQueryTx) (packet.Packet, []byte, error) {
-	sequence, err := tx.Result.Events.GetValue("write_acknowledgement", "packet_sequence")
+func getpacketAndAck(tx ctypes.ResultTx) (packet.Packet, []byte, error) {
+	sequence, err := types.StringifyEvents(tx.TxResult.Events).GetValue("write_acknowledgement", "packet_sequence")
 	if err != nil {
 		fmt.Println(err)
 		return packet.Packet{}, nil, err
 	}
-	sourceChain, err := tx.Result.Events.GetValue("write_acknowledgement", "packet_src_chain")
+	sourceChain, err := types.StringifyEvents(tx.TxResult.Events).GetValue("write_acknowledgement", "packet_src_chain")
 	if err != nil {
 		fmt.Println(err)
 		return packet.Packet{}, nil, err
 	}
-	destinationChain, err := tx.Result.Events.GetValue("write_acknowledgement", "packet_dst_port")
+	destinationChain, err := types.StringifyEvents(tx.TxResult.Events).GetValue("write_acknowledgement", "packet_dst_port")
 	if err != nil {
 		fmt.Println(err)
 		return packet.Packet{}, nil, err
 	}
-	port, err := tx.Result.Events.GetValue("write_acknowledgement", "packet_port")
+	port, err := types.StringifyEvents(tx.TxResult.Events).GetValue("write_acknowledgement", "packet_port")
 	if err != nil {
 		fmt.Println(err)
 		return packet.Packet{}, nil, err
 	}
-	relayChain, err := tx.Result.Events.GetValue("write_acknowledgement", "packet_relay_channel")
+	relayChain, err := types.StringifyEvents(tx.TxResult.Events).GetValue("write_acknowledgement", "packet_relay_channel")
 	if err != nil {
 		fmt.Println(err)
 		return packet.Packet{}, nil, err
 	}
-	data, err := tx.Result.Events.GetValue("write_acknowledgement", "packet_data")
+	data, err := types.StringifyEvents(tx.TxResult.Events).GetValue("write_acknowledgement", "packet_data")
 	if err != nil {
 		fmt.Println(err)
 		return packet.Packet{}, nil, err
 	}
-	ack, err := tx.Result.Events.GetValue("write_acknowledgement", "packet_ack")
+	ack, err := types.StringifyEvents(tx.TxResult.Events).GetValue("write_acknowledgement", "packet_ack")
 	if err != nil {
 		fmt.Println(err)
 		return packet.Packet{}, nil, err
@@ -184,7 +187,7 @@ func sendAck(sourceClient Client, destClient Client, keyname string, txhash stri
 		return "", tibctypes.New("queryProof", 0, "error send acknowledgement")
 	}
 	fmt.Println(ress)
-	return ress.Hash, nil
+	return ress.Hash.String(), nil
 }
 
 func packetRecive(sourceClient Client, destClient Client, keyname string, txHash string) (string, tibctypes.IError) {
@@ -219,7 +222,7 @@ func packetRecive(sourceClient Client, destClient Client, keyname string, txHash
 		return "", tibctypes.New("recvPacket", 0, "error recive packet")
 	}
 	fmt.Println(ress)
-	return ress.Hash, nil
+	return ress.Hash.String(), nil
 }
 func cleanPacket(sourceClient, destClient Client, seq uint64, keyname string) (string, tibctypes.IError) {
 	cleanpacket := packet.CleanPacket{
@@ -243,7 +246,7 @@ func cleanPacket(sourceClient, destClient Client, seq uint64, keyname string) (s
 		return "", err
 	}
 	fmt.Println(res)
-	return res.Hash, nil
+	return res.Hash.String(), nil
 }
 func recvCleanPacket(sourceClient, destClient Client, keyname string, txhash string) (string, tibctypes.IError) {
 	tx, err := sourceClient.QueryTx(txhash)
@@ -279,26 +282,26 @@ func recvCleanPacket(sourceClient, destClient Client, keyname string, txhash str
 		return "", tibctypes.New("recvcleanpacket", 0, "error Recv CleanPacket")
 	}
 	fmt.Println(ress)
-	return ress.Hash, nil
+	return ress.Hash.String(), nil
 }
 
-func getcleanpack(tx types.ResultQueryTx) (packet.CleanPacket, error) {
-	sequence, err := tx.Result.Events.GetValue("send_clean_packet", "packet_sequence")
+func getcleanpack(tx ctypes.ResultTx) (packet.CleanPacket, error) {
+	sequence, err := types.StringifyEvents(tx.TxResult.Events).GetValue("send_clean_packet", "packet_sequence")
 	if err != nil {
 		fmt.Println(err)
 		return packet.CleanPacket{}, nil
 	}
-	sourceChain, err := tx.Result.Events.GetValue("send_clean_packet", "packet_src_chain")
+	sourceChain, err := types.StringifyEvents(tx.TxResult.Events).GetValue("send_clean_packet", "packet_src_chain")
 	if err != nil {
 		fmt.Println(err)
 		return packet.CleanPacket{}, nil
 	}
-	destinationChain, err := tx.Result.Events.GetValue("send_clean_packet", "packet_dst_port")
+	destinationChain, err := types.StringifyEvents(tx.TxResult.Events).GetValue("send_clean_packet", "packet_dst_port")
 	if err != nil {
 		fmt.Println(err)
 		return packet.CleanPacket{}, nil
 	}
-	relayChain, err := tx.Result.Events.GetValue("send_clean_packet", "packet_relay_channel")
+	relayChain, err := types.StringifyEvents(tx.TxResult.Events).GetValue("send_clean_packet", "packet_relay_channel")
 	if err != nil {
 		fmt.Println(err)
 		return packet.CleanPacket{}, nil
