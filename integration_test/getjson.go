@@ -15,6 +15,7 @@ import (
 	"time"
 
 	tenderminttypes "github.com/tendermint/tendermint/proto/tendermint/types"
+	tmtypes "github.com/tendermint/tendermint/types"
 
 	tibc "github.com/bianjieai/tibc-sdk-go"
 	tibcbsc "github.com/bianjieai/tibc-sdk-go/bsc"
@@ -22,8 +23,8 @@ import (
 	"github.com/bianjieai/tibc-sdk-go/commitment"
 	tibceth "github.com/bianjieai/tibc-sdk-go/eth"
 	"github.com/bianjieai/tibc-sdk-go/tendermint"
+
 	ethtypes "github.com/ethereum/go-ethereum/core/types"
-	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 const (

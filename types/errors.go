@@ -153,9 +153,9 @@ func IErrorWrap(err IError, description string) IError {
 	errMsg := fmt.Sprintf("[%s,%s]", err.Error(), description)
 
 	return &Error{
-		codeSpace:err.Codespace(),
-		code:err.Code(),
-		desc:errMsg,
+		codeSpace: err.Codespace(),
+		code:      err.Code(),
+		desc:      errMsg,
 	}
 }
 
