@@ -365,6 +365,8 @@ github.com/influxdata/tdigest v0.0.0-20181121200506-bf2b5ad3c0a9/go.mod h1:Js0mq
 github.com/influxdata/usage-client v0.0.0-20160829180054-6d3895376368/go.mod h1:Wbbw6tYNvwa5dlB6304Sd+82Z3f7PmVZHVKU637d4po=
 github.com/irisnet/core-sdk-go v0.0.0-20210917071031-be43063a1899 h1:LTNSU8LCA9/AX0UOd2NW9PPxOnt70QZhTCjWgeoDE98=
 github.com/irisnet/core-sdk-go v0.0.0-20210917071031-be43063a1899/go.mod h1:xHCE5WPc3UpXzqoEUdmeA8wYz4NLVNNrp3HEww9EBXc=
+github.com/irisnet/core-sdk-go v0.0.0-20211019075829-8bb6cca8d315 h1:A+OH+pEOMkSaQJ1OfEJcBnukhtX5WdR/uXeXDhrTY14=
+github.com/irisnet/core-sdk-go v0.0.0-20211019075829-8bb6cca8d315/go.mod h1:bPyK68ovXC0fW9TF8B9npjeDRT18OC7DnLrts7Ly4Lk=
 github.com/jackpal/go-nat-pmp v1.0.2-0.20160603034137-1fa385a6f458/go.mod h1:QPH045xvCAeXUZOxsnwmrtiCoxIr9eob+4orBN1SBKc=
 github.com/jedisct1/go-minisign v0.0.0-20190909160543-45766022959e/go.mod h1:G1CVv03EnqU1wYL2dFwXxW2An0az9JTl/ZsqXQeBlkU=
 github.com/jessevdk/go-flags v0.0.0-20141203071132-1679536dcc89/go.mod h1:4FA24M0QyGHXBuZZK/XkWh8h0e1EYbRYJSGM75WSRxI=
