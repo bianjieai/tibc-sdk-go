@@ -162,7 +162,7 @@ func Test_integrationClientTen(t *testing.T) {
 	}
 	dec := types.NewDec(1000)
 	deccoin := types.DecCoin{
-		Denom:  "stake",
+		Denom:  "upoint",
 		Amount: dec,
 	}
 	amount := types.DecCoins{deccoin}
@@ -216,20 +216,14 @@ func updateAllCient(clientA, clientB, clientC Client) {
 }
 
 func getIntegrationClient(nodeURI, grpcAddr, chainID, keyName, password, keyStore, chainName string) (Client, tibctypes.IError) {
-	feeCoin, err := types.ParseDecCoins("10stake")
-	//bech32AddressPrefix := types.AddrPrefixCfg{
-	//	AccountAddr:   "cosmos",
-	//	ValidatorAddr: "iva",
-	//	ConsensusAddr: "ica",
-	//	AccountPub:    "iap",
-	//	ValidatorPub:  "ivp",
-	//	ConsensusPub:  "icp",
-	//}
+	feeCoin, err := types.ParseDecCoins("1000upoint")
 	options := []types.Option{
 		types.KeyDAOOption(store.NewMemory(nil)),
 		types.TimeoutOption(3000),
 		types.KeyManagerOption(crypto.NewKeyManager()),
 		types.BIP44PathOption(""),
+		// only for irita sm2
+		types.AlgoOption("sm2"),
 		types.FeeOption(feeCoin),
 	}
 	cfg, err := types.NewClientConfig(nodeURI, grpcAddr, chainID, options...)
