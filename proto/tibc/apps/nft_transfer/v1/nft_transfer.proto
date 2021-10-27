@@ -18,4 +18,6 @@
   string receiver = 5;
   // identify whether it is far away from the source chain
   bool away_from_origin = 6;
-}
+  // the destination contract address to receive the nft
+  string dest_contract = 7;
+ }
