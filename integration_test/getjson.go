@@ -80,14 +80,15 @@ func getTendermintjson(client tibc.Client, height int64) {
 	}
 	fmt.Println(hex.EncodeToString(tendermintHeaderMarshal))
 
-	lastHeight := tibcclient.NewHeight(0, 4)
+	header := tendermint.TmHeaderToPrHeader(tmHeader)
+	lastHeight := header.GetHeight()
 	var clientstate = &tendermint.ClientState{
 		ChainId:         tmHeader.ChainID,
 		TrustLevel:      fra,
 		TrustingPeriod:  time.Hour * 24 * 7 * 2,
 		UnbondingPeriod: time.Hour * 24 * 7 * 3,
 		MaxClockDrift:   time.Second * 10,
-		LatestHeight:    lastHeight,
+		LatestHeight:    tibcclient.NewHeight(lastHeight.GetRevisionNumber(), lastHeight.GetRevisionHeight()),
 		ProofSpecs:      commitment.GetSDKSpecs(),
 		MerklePrefix:    commitment.MerklePrefix{KeyPrefix: []byte("tibc")},
 		TimeDelay:       0,
