@@ -10,10 +10,21 @@ import (
 	"github.com/bianjieai/tibc-sdk-go/client"
 	commitmenttypes "github.com/bianjieai/tibc-sdk-go/commitment"
 	"github.com/bianjieai/tibc-sdk-go/types"
+
+	tmprtypes "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"
 )
 
 var _ types.Header = &Header{}
+
+func TmHeaderToPrHeader(h tmtypes.Header) Header {
+	si := &tmprtypes.SignedHeader{
+		Header: h.ToProto(),
+	}
+	return Header{
+		SignedHeader: si,
+	}
+}
 
 // ConsensusState returns the updated consensus state associated with the header
 func (h Header) ConsensusState() *ConsensusState {
