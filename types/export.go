@@ -4,7 +4,6 @@ type UpdateClientRequest struct {
 	ChainName string `json:"chain_name"`
 	// header to update the light client
 	Header Header `json:"header"`
-
 }
 
 // Height is a wrapper interface over client.Height
@@ -51,6 +50,7 @@ type PacketI interface {
 	GetData() []byte
 	ValidateBasic() error
 }
+
 // CleanPacketI defines the standard interface for TIBC clean packets
 type CleanPacketI interface {
 	GetSequence() uint64
@@ -59,4 +59,3 @@ type CleanPacketI interface {
 	GetRelayChain() string
 	ValidateBasic() error
 }
-
