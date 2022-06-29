@@ -1,7 +1,7 @@
 syntax = "proto3";
 package tibc.lightclients.tendermint.v1;
 
-option go_package = "github.com/bianjieai/tibc-sdk-go/tendermint";
+option go_package = "github.com/bianjieai/tibc-sdk-go/modules/light-clients/tendermint";
 
 import "tendermint/types/validator.proto";
 import "tendermint/types/types.proto";

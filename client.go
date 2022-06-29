@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
-	tibcbsc "github.com/bianjieai/tibc-sdk-go/bsc"
-	"github.com/bianjieai/tibc-sdk-go/client"
-	commitmenttypes "github.com/bianjieai/tibc-sdk-go/commitment"
-	tibceth "github.com/bianjieai/tibc-sdk-go/eth"
-	tibcnft "github.com/bianjieai/tibc-sdk-go/nft_transfer"
-	"github.com/bianjieai/tibc-sdk-go/packet"
-	"github.com/bianjieai/tibc-sdk-go/tendermint"
+	tibcnft "github.com/bianjieai/tibc-sdk-go/modules/apps/nft_transfer"
+	"github.com/bianjieai/tibc-sdk-go/modules/core/client"
+	commitmenttypes "github.com/bianjieai/tibc-sdk-go/modules/core/commitment"
+	"github.com/bianjieai/tibc-sdk-go/modules/core/packet"
+	tibcbsc "github.com/bianjieai/tibc-sdk-go/modules/light-clients/bsc"
+	tibceth "github.com/bianjieai/tibc-sdk-go/modules/light-clients/eth"
+	"github.com/bianjieai/tibc-sdk-go/modules/light-clients/tendermint"
 	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
 
 	"github.com/irisnet/core-sdk-go/common/codec"
@@ -34,6 +34,7 @@ func NewClient(baseClient types.BaseClient, encodingConfig types.EncodingConfig)
 }
 
 func (c Client) RegisterInterfaceTypes(registry cryptotypes.InterfaceRegistry) {
+	// TODO:
 	packet.RegisterInterfaces(registry)
 	tendermint.RegisterInterfaces(registry)
 	tibcnft.RegisterInterfaces(registry)
