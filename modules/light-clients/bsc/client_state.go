@@ -2,7 +2,7 @@ package bsc
 
 import (
 	commitmenttypes "github.com/bianjieai/tibc-sdk-go/modules/core/commitment"
-	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
+	tibctypes "github.com/bianjieai/tibc-sdk-go/modules/types"
 )
 
 var _ tibctypes.ClientState = (*ClientState)(nil)

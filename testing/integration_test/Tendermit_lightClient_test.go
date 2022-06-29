@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
+	tibctypes "github.com/bianjieai/tibc-sdk-go/modules/types"
 	"github.com/irisnet/core-sdk-go/common/crypto"
 	"github.com/irisnet/core-sdk-go/types"
 	"github.com/irisnet/core-sdk-go/types/store"

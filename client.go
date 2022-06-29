@@ -11,7 +11,7 @@ import (
 	tibcbsc "github.com/bianjieai/tibc-sdk-go/modules/light-clients/bsc"
 	tibceth "github.com/bianjieai/tibc-sdk-go/modules/light-clients/eth"
 	"github.com/bianjieai/tibc-sdk-go/modules/light-clients/tendermint"
-	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
+	tibctypes "github.com/bianjieai/tibc-sdk-go/modules/types"
 
 	"github.com/irisnet/core-sdk-go/common/codec"
 	cryptotypes "github.com/irisnet/core-sdk-go/common/codec/types"

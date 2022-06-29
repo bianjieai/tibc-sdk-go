@@ -1,7 +1,7 @@
 package commitment
 
 import (
-	"github.com/bianjieai/tibc-sdk-go/types"
+	"github.com/bianjieai/tibc-sdk-go/modules/types"
 )
 
 // SubModuleName is the error codespace

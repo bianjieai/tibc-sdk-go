@@ -3,7 +3,7 @@ package tendermint
 import (
 	"strings"
 
-	"github.com/bianjieai/tibc-sdk-go/types"
+	"github.com/bianjieai/tibc-sdk-go/modules/types"
 	tmmath "github.com/tendermint/tendermint/libs/math"
 	"github.com/tendermint/tendermint/light"
 )

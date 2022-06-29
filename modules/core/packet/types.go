@@ -2,7 +2,7 @@ package packet
 
 import (
 	"github.com/bianjieai/tibc-sdk-go/modules/core/commitment"
-	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
+	tibctypes "github.com/bianjieai/tibc-sdk-go/modules/types"
 	sdk "github.com/irisnet/core-sdk-go/types"
 )
 

@@ -3,7 +3,7 @@ package bsc
 import (
 	"math/big"
 
-	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
+	tibctypes "github.com/bianjieai/tibc-sdk-go/modules/types"
 	"github.com/ethereum/go-ethereum/common"
 )
 

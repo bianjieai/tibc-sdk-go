@@ -1,7 +1,7 @@
 package commitment
 
 import (
-	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
+	tibctypes "github.com/bianjieai/tibc-sdk-go/modules/types"
 	ics23 "github.com/confio/ics23/go"
 	"github.com/tendermint/tendermint/proto/tendermint/crypto"
 )

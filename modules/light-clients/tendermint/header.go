@@ -9,7 +9,7 @@ import (
 
 	"github.com/bianjieai/tibc-sdk-go/modules/core/client"
 	commitmenttypes "github.com/bianjieai/tibc-sdk-go/modules/core/commitment"
-	"github.com/bianjieai/tibc-sdk-go/types"
+	"github.com/bianjieai/tibc-sdk-go/modules/types"
 
 	tmprtypes "github.com/tendermint/tendermint/proto/tendermint/types"
 	tmtypes "github.com/tendermint/tendermint/types"

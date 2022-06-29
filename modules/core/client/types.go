@@ -5,7 +5,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/bianjieai/tibc-sdk-go/types"
+	"github.com/bianjieai/tibc-sdk-go/modules/types"
+	coretypes "github.com/irisnet/core-sdk-go/common/codec/types"
 	sdk "github.com/irisnet/core-sdk-go/types"
 )
 
@@ -42,7 +43,7 @@ func (m *MsgUpdateClient) ValidateBasic() error {
 	if err0 != nil {
 		return types.Wrapf(types.ErrInvalidAddress, "string could not be parsed as address: %v", err0)
 	}
-	header, err1 := types.UnpackHeader(m.Header)
+	header, err1 := UnpackHeader(m.Header)
 	if err1 != nil {
 		return err1
 	}
@@ -88,4 +89,20 @@ func (m *MsgUpdateClient) GetSigners() []sdk.AccAddress {
 		panic(err)
 	}
 	return []sdk.AccAddress{accAddr}
+}
+
+// UnpackHeader unpacks an Any into a Header. It returns an error if the
+// consensus state can't be unpacked into a Header.
+// TODO: where to put this
+func UnpackHeader(any *coretypes.Any) (types.Header, error) {
+	if any == nil {
+		return nil, types.Wrap(types.ErrUnpackAny, "protobuf Any message cannot be nil")
+	}
+
+	header, ok := any.GetCachedValue().(types.Header)
+	if !ok {
+		return nil, types.Wrapf(types.ErrUnpackAny, "cannot unpack Any into Header %T", any)
+	}
+
+	return header, nil
 }

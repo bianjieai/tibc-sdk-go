@@ -1,6 +1,6 @@
 package bsc
 
-import tibctypes "github.com/bianjieai/tibc-sdk-go/types"
+import tibctypes "github.com/bianjieai/tibc-sdk-go/modules/types"
 
 const (
 	SubModuleName = "bsc-client"

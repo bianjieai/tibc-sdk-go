@@ -3,7 +3,7 @@ package commitment
 import (
 	"net/url"
 
-	"github.com/bianjieai/tibc-sdk-go/types"
+	"github.com/bianjieai/tibc-sdk-go/modules/types"
 	ics23 "github.com/confio/ics23/go"
 )
 

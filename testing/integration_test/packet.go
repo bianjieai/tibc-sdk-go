@@ -6,7 +6,7 @@ import (
 
 	tibc "github.com/bianjieai/tibc-sdk-go"
 	"github.com/bianjieai/tibc-sdk-go/modules/core/packet"
-	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
+	tibctypes "github.com/bianjieai/tibc-sdk-go/modules/types"
 	"github.com/irisnet/core-sdk-go/types"
 )
 

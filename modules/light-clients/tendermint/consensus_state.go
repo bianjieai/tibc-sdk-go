@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/bianjieai/tibc-sdk-go/modules/core/commitment"
-	"github.com/bianjieai/tibc-sdk-go/types"
+	"github.com/bianjieai/tibc-sdk-go/modules/types"
 	tmbytes "github.com/tendermint/tendermint/libs/bytes"
 	tmtypes "github.com/tendermint/tendermint/types"
 )

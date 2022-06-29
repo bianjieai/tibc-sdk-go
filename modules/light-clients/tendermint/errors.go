@@ -1,7 +1,7 @@
 package tendermint
 
 import (
-	"github.com/bianjieai/tibc-sdk-go/types"
+	"github.com/bianjieai/tibc-sdk-go/modules/types"
 )
 
 const (

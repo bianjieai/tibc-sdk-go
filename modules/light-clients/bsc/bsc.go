@@ -7,7 +7,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 
 	tibcclient "github.com/bianjieai/tibc-sdk-go/modules/core/client"
-	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
+	tibctypes "github.com/bianjieai/tibc-sdk-go/modules/types"
 
 	"github.com/ethereum/go-ethereum/common"
 )

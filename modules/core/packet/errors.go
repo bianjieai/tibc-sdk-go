@@ -1,6 +1,6 @@
 package packet
 
-import "github.com/bianjieai/tibc-sdk-go/types"
+import "github.com/bianjieai/tibc-sdk-go/modules/types"
 
 const moduleName = "tibc" + "-" + "packet"
 
