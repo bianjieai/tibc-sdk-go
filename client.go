@@ -8,10 +8,11 @@ import (
 	"github.com/bianjieai/tibc-sdk-go/client"
 	commitmenttypes "github.com/bianjieai/tibc-sdk-go/commitment"
 	tibceth "github.com/bianjieai/tibc-sdk-go/eth"
+	tibcnft "github.com/bianjieai/tibc-sdk-go/nft_transfer"
 	"github.com/bianjieai/tibc-sdk-go/packet"
 	"github.com/bianjieai/tibc-sdk-go/tendermint"
-	tibcnft "github.com/bianjieai/tibc-sdk-go/types"
 	tibctypes "github.com/bianjieai/tibc-sdk-go/types"
+
 	"github.com/irisnet/core-sdk-go/common/codec"
 	cryptotypes "github.com/irisnet/core-sdk-go/common/codec/types"
 	"github.com/irisnet/core-sdk-go/types"
@@ -35,7 +36,6 @@ func NewClient(baseClient types.BaseClient, encodingConfig types.EncodingConfig)
 func (c Client) RegisterInterfaceTypes(registry cryptotypes.InterfaceRegistry) {
 	packet.RegisterInterfaces(registry)
 	tendermint.RegisterInterfaces(registry)
-	tibctypes.RegisterInterfaces(registry)
 	tibcnft.RegisterInterfaces(registry)
 	tibcbsc.RegisterInterfaces(registry)
 	tibceth.RegisterInterfaces(registry)
