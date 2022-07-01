@@ -1,7 +1,7 @@
 syntax = "proto3";
 package tibc.core.packet.v1;
 
-option go_package = "github.com/bianjieai/tibc-sdk-go/packet";
+option go_package = "github.com/bianjieai/tibc-sdk-go/modules/core/packet";
 
 import "gogoproto/gogo.proto";
 

@@ -1,7 +1,7 @@
 syntax = "proto3";
 package tibc.lightclients.bsc.v1;
 
-option go_package = "github.com/bianjieai/tibc-sdk-go/bsc";
+option go_package = "github.com/bianjieai/tibc-sdk-go/modules/light-clients/bsc";
 
 import "gogoproto/gogo.proto";
 import "tibc/core/client/v1/client.proto";
