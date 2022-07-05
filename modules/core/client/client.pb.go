@@ -1173,7 +1173,10 @@ func (m *IdentifiedClientState) Unmarshal(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
+			if skippy < 0 {
+				return ErrInvalidLengthClient
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthClient
 			}
 			if (iNdEx + skippy) > l {
@@ -1287,7 +1290,10 @@ func (m *IdentifiedRelayers) Unmarshal(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
+			if skippy < 0 {
+				return ErrInvalidLengthClient
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthClient
 			}
 			if (iNdEx + skippy) > l {
@@ -1406,7 +1412,10 @@ func (m *ConsensusStateWithHeight) Unmarshal(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
+			if skippy < 0 {
+				return ErrInvalidLengthClient
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthClient
 			}
 			if (iNdEx + skippy) > l {
@@ -1522,7 +1531,10 @@ func (m *ClientConsensusStates) Unmarshal(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
+			if skippy < 0 {
+				return ErrInvalidLengthClient
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthClient
 			}
 			if (iNdEx + skippy) > l {
@@ -1740,7 +1752,10 @@ func (m *CreateClientProposal) Unmarshal(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
+			if skippy < 0 {
+				return ErrInvalidLengthClient
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthClient
 			}
 			if (iNdEx + skippy) > l {
@@ -1958,7 +1973,10 @@ func (m *UpgradeClientProposal) Unmarshal(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
+			if skippy < 0 {
+				return ErrInvalidLengthClient
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthClient
 			}
 			if (iNdEx + skippy) > l {
@@ -2136,7 +2154,10 @@ func (m *RegisterRelayerProposal) Unmarshal(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
+			if skippy < 0 {
+				return ErrInvalidLengthClient
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthClient
 			}
 			if (iNdEx + skippy) > l {
@@ -2224,7 +2245,10 @@ func (m *Height) Unmarshal(dAtA []byte) error {
 			if err != nil {
 				return err
 			}
-			if (skippy < 0) || (iNdEx+skippy) < 0 {
+			if skippy < 0 {
+				return ErrInvalidLengthClient
+			}
+			if (iNdEx + skippy) < 0 {
 				return ErrInvalidLengthClient
 			}
 			if (iNdEx + skippy) > l {
